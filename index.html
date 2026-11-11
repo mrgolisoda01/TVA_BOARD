@@ -166,6 +166,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .search { padding: 9px 12px; background-image: none; width: auto; flex: 1 1 220px; max-width: 380px; }
 .field select:hover { border-color: var(--muted); }
+.field input, .field textarea {
+  width: 100%; min-width: 0; padding: 9px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
+}
+.field textarea { resize: vertical; font-family: inherit; line-height: 1.4; }
+.field input:hover, .field textarea:hover { border-color: var(--muted); }
 .field-chips { align-self: end; }
 .field-chips .chips { min-height: 36px; align-items: center; flex-wrap: nowrap; }
 .btn-reset { justify-self: end; align-self: end; }
@@ -277,6 +283,52 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .modal-card .card-sub { padding: 0 18px 10px; }
 .modal-card textarea { display: block; width: calc(100% - 36px); margin: 0 18px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); font-family: var(--font-mono); font-size: .75rem; resize: vertical; }
 
+/* ---------- Side rail & views ---------- */
+:root { --rail: 64px; }
+body { padding-left: var(--rail); }
+.rail {
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 40; width: var(--rail);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 8px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border-right: 1px solid var(--line-2);
+}
+.rail-btn {
+  width: 48px; height: 50px; border-radius: 12px; border: 0; background: transparent; color: var(--muted);
+  display: grid; place-items: center; align-content: center; gap: 3px; cursor: pointer;
+  font-size: .58rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; line-height: 1;
+}
+.rail-btn svg { width: 22px; height: 22px; }
+.rail-btn:hover { background: var(--surface-2); color: var(--fg); }
+.rail-btn.is-active { background: var(--accent-soft); color: var(--accent); }
+.view { display: contents; }
+.view > * { min-width: 0; }
+
+/* ---------- Settings ---------- */
+.settings { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; }
+.settings-nav { display: grid; gap: 4px; padding: 10px; position: sticky; top: 84px; }
+.settings-nav button { text-align: left; padding: 10px 12px; border-radius: 10px; border: 0; background: transparent; color: var(--muted); font-weight: 500; cursor: pointer; }
+.settings-nav button:hover { background: var(--surface-2); color: var(--fg); }
+.settings-nav button.is-active { background: var(--accent-soft); color: var(--fg); }
+.settings-main { display: grid; gap: 18px; min-width: 0; }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 10px 18px 16px; }
+.status-item { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.status-item b { font-weight: 600; font-size: .95rem; }
+.status-item .card-sub { margin-top: 0; overflow-wrap: anywhere; }
+.steps { padding: 4px 18px 18px; color: var(--muted); font-size: .85rem; }
+.steps ol { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 6px; }
+.steps code { font-family: var(--font-mono); font-size: .78rem; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; color: var(--fg); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 10px 18px 16px; }
+.form-grid .field-wide { grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sched-table td { white-space: normal; vertical-align: top; }
+.sched-table td.name { min-width: 160px; }
+.sched-table td small { display: block; color: var(--muted); font-size: .72rem; margin-top: 2px; }
+.sched-table td .tag { white-space: normal; display: inline-block; max-width: 280px; line-height: 1.35; }
+.sched-table .actions { display: flex; gap: 6px; flex-wrap: nowrap; }
+.sched-table td:last-child { white-space: nowrap; }
+.recips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 380px; }
+.recips .tag { font-weight: 500; text-transform: none; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -285,7 +337,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .field-chips { grid-column: span 2; }
   .field-chips .chips { flex-wrap: wrap; }
 }
+@media (max-width: 900px) {
+  .settings { grid-template-columns: minmax(0, 1fr); }
+  .settings-nav { position: static; display: flex; flex-wrap: wrap; }
+}
 @media (max-width: 720px) {
+  body { padding-left: 0; padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+  .rail {
+    top: auto; right: 0; bottom: 0; width: auto; flex-direction: row; justify-content: center; gap: 28px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); border-right: 0; border-top: 1px solid var(--line-2);
+  }
+  .toast { bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
   .topbar { flex-wrap: wrap; min-width: 0; }
   .brand-title { font-size: 1.15rem; }
   .brand-sub { white-space: normal; }
@@ -309,6 +371,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
+<nav class="rail" aria-label="Sections">
+  <button type="button" class="rail-btn is-active" id="railBoard" data-view="board" title="Board">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v6H4zM13 5h7v3h-7zM13 10h7v9h-7zM4 13h7v6H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    Board
+  </button>
+  <button type="button" class="rail-btn" id="railSettings" data-view="settings" title="Settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    Settings
+  </button>
+</nav>
 <div class="app" id="app">
 
   <header class="topbar">
@@ -333,6 +405,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
       <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
     </div>
   </header>
+
+  <div class="view" id="viewBoard">
 
   <section class="filters" aria-label="Filters">
     <div class="field">
@@ -446,6 +520,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
           <button type="button" class="seg-btn" data-value="state">State</button>
         </div>
         <button class="btn btn-ghost btn-sm" id="copySummary" type="button">Copy CSV</button>
+        <button class="btn btn-ghost btn-sm" id="exportSummary" type="button">Export Excel</button>
       </div>
     </header>
     <div class="table-wrap">
@@ -498,6 +573,133 @@ button, input, select, textarea { font: inherit; color: inherit; }
       <div><dt>Key outlet</dt><dd>Top Outlet when target is 3 crates or more, Normal Outlet when below, blank when no target. Recomputed here so outlets with no target are not counted as Top.</dd></div>
     </dl>
   </footer>
+
+  </div><!-- /viewBoard -->
+
+  <div class="view" id="viewSettings" hidden>
+  <section class="settings" aria-label="Settings">
+    <aside class="card settings-nav" aria-label="Settings sections">
+      <button type="button" class="is-active" data-section="mail">Mail automation</button>
+    </aside>
+
+    <div class="settings-main" id="settingsMail">
+      <section class="card">
+        <header class="card-head card-head-wrap">
+          <div>
+            <h2>Mail automation</h2>
+            <p class="card-sub">Email reports go out automatically at the times below (Indian Standard Time), built from the newest uploaded file that has rows for that day. Each email carries the "Who visited what" table, the outlets each employee visited, and an Excel copy.</p>
+          </div>
+          <div class="head-tools">
+            <button class="btn btn-ghost btn-sm" id="mailRefresh" type="button">Refresh</button>
+          </div>
+        </header>
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="kpi-label">Sender</span>
+            <b id="senderState">Checking…</b>
+            <span class="card-sub" id="senderDetail"></span>
+          </div>
+          <div class="status-item">
+            <span class="kpi-label">Gmail sends left today</span>
+            <b id="senderQuota">—</b>
+            <span class="card-sub">Each recipient of each email counts as one. Resets daily.</span>
+          </div>
+          <div class="status-item">
+            <span class="kpi-label">Newest upload</span>
+            <b id="uploadState">—</b>
+            <span class="card-sub" id="uploadDetail"></span>
+          </div>
+        </div>
+        <div class="steps" id="senderSteps" hidden>
+          The sender is a small Google Apps Script that runs from your Gmail account. One-time setup:
+          <ol>
+            <li>Open <code>script.google.com</code> → New project. Paste the contents of <code>Code.gs</code> from the <code>apps-script</code> folder, replacing the default code.</li>
+            <li>Project Settings → tick "Show appsscript.json", then paste the provided <code>appsscript.json</code> over it (sets the Indian time zone and permissions).</li>
+            <li>Pick the function <code>setup</code> in the toolbar and press Run. Approve the Google permission prompts (Gmail, Sheets, Drive, external requests).</li>
+          </ol>
+          After that it checks every 5 minutes for due schedules and shows up here as "Running".
+        </div>
+      </section>
+
+      <section class="card">
+        <header class="card-head card-head-wrap">
+          <div>
+            <h2>Schedules</h2>
+            <p class="card-sub" id="schedMeta">Loading…</p>
+          </div>
+          <div class="head-tools">
+            <button class="btn btn-primary btn-sm" id="schedAdd" type="button">Add schedule</button>
+          </div>
+        </header>
+        <div class="table-wrap">
+          <table class="data-table sched-table" id="schedTable"></table>
+        </div>
+        <p class="table-hint">"Send now" sends that schedule's report on the sender's next check (within 5 minutes) without affecting its daily run.</p>
+      </section>
+
+      <section class="card" id="schedFormCard" hidden>
+        <header class="card-head">
+          <div>
+            <h2 id="schedFormTitle">New schedule</h2>
+            <p class="card-sub">The morning report usually covers the previous day; status mails during the day cover today so far.</p>
+          </div>
+        </header>
+        <form id="schedForm" class="form-grid" novalidate>
+          <input type="hidden" id="sfId" value="">
+          <div class="field">
+            <label for="sfName">Name</label>
+            <input id="sfName" type="text" placeholder="Morning report" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="sfTime">Send at (IST)</label>
+            <input id="sfTime" type="time" value="10:00" step="300">
+          </div>
+          <div class="field">
+            <label for="sfDay">Report for</label>
+            <select id="sfDay">
+              <option value="today">Today — status so far</option>
+              <option value="previous">Previous day — full day</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sfActive">Status</label>
+            <select id="sfActive">
+              <option value="true">Active</option>
+              <option value="false">Paused</option>
+            </select>
+          </div>
+          <div class="field field-wide">
+            <label for="sfRecipients">Recipients — one per line or comma-separated</label>
+            <textarea id="sfRecipients" rows="3" placeholder="name@company.com"></textarea>
+          </div>
+          <div class="form-actions field-wide">
+            <button class="btn btn-primary" type="submit" id="sfSave">Save schedule</button>
+            <button class="btn btn-ghost" type="button" id="sfCancel">Cancel</button>
+            <span class="card-sub" id="sfError"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h2>Email options</h2>
+            <p class="card-sub">Added at the bottom of every report email so people can open the live board.</p>
+          </div>
+        </header>
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label for="boardUrl">Link to this board (your Render address)</label>
+            <input id="boardUrl" type="url" placeholder="https://tva-board.onrender.com">
+          </div>
+          <div class="form-actions field-wide">
+            <button class="btn btn-primary btn-sm" id="boardUrlSave" type="button">Save link</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+  </div><!-- /viewSettings -->
 
   <div class="dropzone" id="dropzone" hidden>
     <div class="dropzone-inner">Drop the Excel report to load it</div>
@@ -1267,7 +1469,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
     return [head, ...lines].map((l) => l.map(csvCell).join(',')).join('\n');
   }
 
-  root.TVATable = { renderSummary, renderOutlets, summaryCsv, outletsCsv, SUMMARY_COLS, OUTLET_COLS };
+  // Same columns as the CSV, but with real numbers (for the Excel export) and an "All rows" total at the end.
+  function summaryAoa(groups, mode) {
+    const head = ['Name', 'Role', 'Reporting to', 'State', 'Franchise', 'Employees', 'Outlets', 'Visited', 'Coverage %', 'Buying total', 'Buying visited', 'Non-buying total', 'Non-buying visited', 'Visicooler total', 'Visicooler visited', 'Orders received', 'Target (crates)', 'Achieved (crates)', 'Achieved %', 'Target status', 'Sales order value', 'Sales invoice value', 'Cash collection', 'Avg visit (min)'];
+    const r1 = (n) => Math.round(n * 10) / 10, r2 = (n) => Math.round(n * 100) / 100;
+    const line = (g) => [g.label, g.roleLabel, g.managerLabel, g.stateLabel, g.franchiseLabel, g.employeeCount, g.agg.outlets, g.agg.visited, r1(g.agg.coverage * 100),
+      g.agg.buying.total, g.agg.buying.visited, g.agg.nonBuying.total, g.agg.nonBuying.visited, g.agg.visi.total, g.agg.visi.visited, g.agg.ordersReceived,
+      r2(g.agg.target), r2(g.agg.achieved), g.agg.achPct === null ? '' : r1(g.agg.achPct * 100), g.agg.status, g.agg.orderValue, g.agg.invoiceValue, g.agg.collection, g.agg.durationAvg === null ? '' : r1(g.agg.durationAvg)];
+    const lines = groups.map(line);
+    if (groups.length > 1) {
+      const all = root.TVAMetrics.aggregate(groups.flatMap((g) => g.rows));
+      lines.push(line({ label: 'All rows', roleLabel: '', managerLabel: '', stateLabel: '', franchiseLabel: '', employeeCount: new Set(groups.flatMap((g) => [...g.employees])).size, agg: all }));
+    }
+    return [head, ...lines];
+  }
+
+  root.TVATable = { renderSummary, renderOutlets, summaryCsv, outletsCsv, summaryAoa, SUMMARY_COLS, OUTLET_COLS };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
@@ -1300,6 +1517,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
     summarySort: { key: 'visited', dir: 'desc' },
     outlet: { q: '', visit: 'all', chips: new Set(), sort: { key: 'visit', dir: 'desc' }, limit: PAGE },
     isSample: false,
+    view: 'board',
   };
 
   // ---------- helpers ----------
@@ -1354,6 +1572,200 @@ button, input, select, textarea { font: inherit; color: inherit; }
       body: JSON.stringify({ file_name: meta.fileName || null, meta, rows: dataset.rows }),
     });
     if (!res.ok) throw await sharedError(res);
+  }
+  // Generic REST call for the settings tables. Returns parsed JSON (or null for empty responses).
+  async function sb(path, opts) {
+    opts = opts || {};
+    const res = await fetch(`${SHARED.url}/rest/v1/${path}`, {
+      method: opts.method || 'GET', cache: 'no-store',
+      headers: sharedHeaders(opts.headers),
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+    });
+    if (!res.ok) throw await sharedError(res);
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  // ---------- views (left rail) ----------
+  function showView(name) {
+    state.view = name;
+    $('viewBoard').hidden = name !== 'board';
+    $('viewSettings').hidden = name !== 'settings';
+    document.querySelectorAll('.rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.view === name));
+    if (name === 'settings') { history.replaceState(null, '', '#settings'); loadSettings(); }
+    else { history.replaceState(null, '', location.pathname + location.search); if (state.data) render(); }
+    window.scrollTo({ top: 0 });
+  }
+
+  // ---------- settings: mail automation ----------
+  const mail = { schedules: [], timer: null, pendingDelete: null };
+  const EMAIL_RE = /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/;
+  const fmtTime = (t) => { // "10:00:00" -> "10:00 AM"
+    const m = String(t || '').match(/^(\d{1,2}):(\d{2})/); if (!m) return t || '';
+    const h = Number(m[1]); return `${h % 12 || 12}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+  };
+  const ago = (iso) => {
+    const ms = Date.now() - new Date(iso).getTime(); if (isNaN(ms)) return '';
+    const min = Math.round(ms / 60000);
+    return min < 1 ? 'just now' : min < 60 ? `${min} min ago` : min < 1440 ? `${Math.round(min / 60)} h ago` : `${Math.round(min / 1440)} d ago`;
+  };
+  const parseRecipients = (text) => [...new Set(String(text || '').split(/[\n,;]+/).map((s) => s.trim().toLowerCase()).filter(Boolean))];
+
+  async function loadSettings() {
+    clearTimeout(mail.timer);
+    await Promise.all([loadSenderStatus(), loadSchedules(), loadBoardUrl()]);
+    if (state.view === 'settings') mail.timer = setTimeout(loadSettings, 60000); // keep the status fresh while the page is open
+  }
+  async function loadSenderStatus() {
+    try {
+      const [settings, uploads] = await Promise.all([
+        sb('tva_settings?select=key,value,updated_at&key=in.(sender_heartbeat,board_url)'),
+        sb('rpc/tva_upload_dates', { method: 'POST', body: {} }),
+      ]);
+      const hb = (settings || []).find((s) => s.key === 'sender_heartbeat');
+      let beat = null; try { beat = hb && hb.value ? JSON.parse(hb.value) : null; } catch (e) { beat = null; }
+      const at = beat && beat.at && !isNaN(new Date(beat.at)) ? new Date(beat.at) : null;
+      const fresh = at && Date.now() - at.getTime() < 15 * 60000;
+      $('senderState').innerHTML = !at ? '<span class="tag tag-warn">Not connected</span>' : fresh ? '<span class="tag tag-good">Running</span>' : '<span class="tag tag-bad">Not responding</span>';
+      $('senderDetail').textContent = !at ? 'The Google Apps Script sender has not checked in yet — follow the steps below.'
+        : `Last check ${ago(at.toISOString())} (${M.fmt.date(at.toISOString())})` + (beat && beat.account ? ` · sends from ${beat.account}` : '') + (fresh ? '' : ' · it should check in every 5 minutes; make sure the Apps Script trigger is still running.');
+      $('senderQuota').textContent = beat && beat.quota !== undefined && beat.quota !== null ? M.fmt.int(beat.quota) : '—';
+      $('senderSteps').hidden = !!fresh;
+      const u = uploads && uploads[0];
+      $('uploadState').textContent = u ? (u.file_name || 'Upload') : 'No file uploaded yet';
+      $('uploadDetail').textContent = u ? `Uploaded ${M.fmt.date(u.uploaded_at)} · has rows for ${(u.dates || []).join(', ') || 'no dates'}` : 'Reports can only be sent once a file has been uploaded on the board.';
+    } catch (e) {
+      console.error(e);
+      $('senderState').innerHTML = '<span class="tag tag-bad">Unavailable</span>';
+      $('senderDetail').textContent = 'Could not reach the shared database: ' + (e.message || e);
+    }
+  }
+  async function loadSchedules() {
+    try {
+      mail.schedules = await sb('tva_mail_schedules?select=*&order=send_time.asc,id.asc') || [];
+      renderSchedules();
+    } catch (e) {
+      console.error(e);
+      $('schedMeta').textContent = 'Could not load schedules: ' + (e.message || e);
+    }
+  }
+  async function loadBoardUrl() {
+    try {
+      const rows = await sb('tva_settings?select=value&key=eq.board_url');
+      if (document.activeElement !== $('boardUrl')) $('boardUrl').value = rows && rows[0] && rows[0].value ? rows[0].value : '';
+    } catch (e) { /* shown by loadSenderStatus */ }
+  }
+  function statusTagFor(s) {
+    if (s.send_now) return '<span class="tag tag-info">Sending within 5 min</span>';
+    if (!s.active) return '<span class="tag tag-muted">Paused</span>';
+    if (!s.recipients || !s.recipients.length) return '<span class="tag tag-warn">No recipients</span>';
+    return '<span class="tag tag-good">Active</span>';
+  }
+  function lastTagFor(s) {
+    if (!s.last_status) return '<span class="tag tag-muted">Never sent</span>';
+    const st = String(s.last_status);
+    const cls = /^sent/i.test(st) ? 'tag-good' : /^(error|failed)/i.test(st) ? 'tag-bad' : 'tag-warn';
+    return `<span class="tag ${cls}">${st.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</span>`;
+  }
+  function renderSchedules() {
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const list = mail.schedules;
+    const active = list.filter((s) => s.active && s.recipients && s.recipients.length).length;
+    $('schedMeta').textContent = list.length ? `${list.length} schedule${list.length === 1 ? '' : 's'} · ${active} active` : 'No schedules yet.';
+    let html = '<thead><tr><th>Name</th><th>Send at (IST)</th><th>Report for</th><th>Recipients</th><th>Status</th><th>Last sent</th><th>Actions</th></tr></thead><tbody>';
+    if (!list.length) html += '<tr><td class="empty" colspan="7">No schedules yet. Add one to start sending reports.</td></tr>';
+    list.forEach((s) => {
+      const recips = (s.recipients || []).length ? `<div class="recips">${s.recipients.map((r) => `<span class="tag">${esc(r)}</span>`).join('')}</div>` : '<span class="card-sub">— add recipients —</span>';
+      const del = mail.pendingDelete === s.id ? `<button class="btn btn-sm" style="border-color:var(--bad);color:var(--bad)" data-act="confirmDelete" data-id="${s.id}" type="button">Confirm delete</button>` : `<button class="btn btn-ghost btn-sm" data-act="delete" data-id="${s.id}" type="button">Delete</button>`;
+      html += `<tr data-id="${s.id}">
+        <td class="name">${esc(s.name || '(unnamed)')}</td>
+        <td>${esc(fmtTime(s.send_time))}</td>
+        <td>${s.report_day === 'previous' ? 'Previous day' : 'Today'}</td>
+        <td>${recips}</td>
+        <td>${statusTagFor(s)}</td>
+        <td>${lastTagFor(s)}${s.last_sent_at ? `<small>${esc(M.fmt.date(s.last_sent_at))} · ${esc(ago(s.last_sent_at))}</small>` : ''}</td>
+        <td><div class="actions">
+          <button class="btn btn-ghost btn-sm" data-act="sendNow" data-id="${s.id}" type="button" ${s.send_now ? 'disabled' : ''}>Send now</button>
+          <button class="btn btn-ghost btn-sm" data-act="toggle" data-id="${s.id}" type="button">${s.active ? 'Pause' : 'Resume'}</button>
+          <button class="btn btn-ghost btn-sm" data-act="edit" data-id="${s.id}" type="button">Edit</button>
+          ${del}
+        </div></td>
+      </tr>`;
+    });
+    $('schedTable').innerHTML = html + '</tbody>';
+  }
+  function openScheduleForm(s) {
+    $('sfId').value = s ? s.id : '';
+    $('schedFormTitle').textContent = s ? `Edit "${s.name || 'schedule'}"` : 'New schedule';
+    $('sfName').value = s ? s.name : '';
+    $('sfTime').value = s ? String(s.send_time).slice(0, 5) : '10:00';
+    $('sfDay').value = s ? s.report_day : 'today';
+    $('sfActive').value = s ? String(!!s.active) : 'true';
+    $('sfRecipients').value = s ? (s.recipients || []).join('\n') : '';
+    $('sfError').textContent = '';
+    $('schedFormCard').hidden = false;
+    $('schedFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('sfName').focus();
+  }
+  async function saveScheduleForm(e) {
+    e.preventDefault();
+    const id = $('sfId').value;
+    const recipients = parseRecipients($('sfRecipients').value);
+    const bad = recipients.filter((r) => !EMAIL_RE.test(r));
+    const name = $('sfName').value.trim(), time = $('sfTime').value;
+    if (!name) { $('sfError').textContent = 'Give the schedule a name.'; return; }
+    if (!/^\d{2}:\d{2}/.test(time)) { $('sfError').textContent = 'Pick a send time.'; return; }
+    if (bad.length) { $('sfError').textContent = 'Check these addresses: ' + bad.join(', '); return; }
+    const body = { name, send_time: time, report_day: $('sfDay').value, recipients, active: $('sfActive').value === 'true' };
+    $('sfSave').disabled = true;
+    try {
+      if (id) await sb(`tva_mail_schedules?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', body, headers: { Prefer: 'return=minimal' } });
+      else await sb('tva_mail_schedules', { method: 'POST', body, headers: { Prefer: 'return=minimal' } });
+      $('schedFormCard').hidden = true;
+      toast(id ? 'Schedule updated.' : `Schedule added — ${fmtTime(time)} IST, ${recipients.length} recipient${recipients.length === 1 ? '' : 's'}.`);
+      await loadSchedules();
+    } catch (err) {
+      console.error(err);
+      $('sfError').textContent = 'Could not save: ' + (err.message || err);
+    } finally { $('sfSave').disabled = false; }
+  }
+  async function scheduleAction(act, id) {
+    const s = mail.schedules.find((x) => String(x.id) === String(id));
+    if (!s) return;
+    try {
+      if (act === 'edit') { openScheduleForm(s); return; }
+      if (act === 'delete') { mail.pendingDelete = s.id; renderSchedules(); setTimeout(() => { if (mail.pendingDelete === s.id) { mail.pendingDelete = null; renderSchedules(); } }, 5000); return; }
+      if (act === 'confirmDelete') { mail.pendingDelete = null; await sb(`tva_mail_schedules?id=eq.${s.id}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } }); toast(`Deleted "${s.name}".`); }
+      if (act === 'toggle') { await sb(`tva_mail_schedules?id=eq.${s.id}`, { method: 'PATCH', body: { active: !s.active }, headers: { Prefer: 'return=minimal' } }); toast(s.active ? `Paused "${s.name}".` : `Resumed "${s.name}".`); }
+      if (act === 'sendNow') {
+        if (!s.recipients || !s.recipients.length) { toast('Add at least one recipient first.', true); return; }
+        await sb(`tva_mail_schedules?id=eq.${s.id}`, { method: 'PATCH', body: { send_now: true }, headers: { Prefer: 'return=minimal' } });
+        const fresh = /Running/.test($('senderState').textContent);
+        toast(fresh ? `Queued — "${s.name}" goes out on the sender's next check (within 5 minutes).` : `Queued — but the sender is not running right now, so nothing will go out until it is.`, !fresh);
+      }
+      await loadSchedules();
+    } catch (err) {
+      console.error(err);
+      toast('That did not work: ' + (err.message || err), true);
+    }
+  }
+  async function saveBoardUrl() {
+    const value = $('boardUrl').value.trim();
+    if (value && !/^https?:\/\/\S+$/i.test(value)) { toast('The link should start with http:// or https://', true); return; }
+    try {
+      await sb('tva_settings', { method: 'POST', body: { key: 'board_url', value }, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' } });
+      toast(value ? 'Board link saved — it will be added to every report email.' : 'Board link cleared.');
+    } catch (err) { console.error(err); toast('Could not save the link: ' + (err.message || err), true); }
+  }
+  function bindSettings() {
+    document.querySelectorAll('.rail-btn').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+    $('mailRefresh').addEventListener('click', () => { loadSettings(); toast('Refreshed.'); });
+    $('schedAdd').addEventListener('click', () => openScheduleForm(null));
+    $('schedForm').addEventListener('submit', saveScheduleForm);
+    $('sfCancel').addEventListener('click', () => { $('schedFormCard').hidden = true; });
+    $('schedTable').addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (b) scheduleAction(b.dataset.act, b.dataset.id); });
+    $('boardUrlSave').addEventListener('click', saveBoardUrl);
+    window.addEventListener('hashchange', () => showView(location.hash === '#settings' ? 'settings' : 'board'));
   }
 
   // ---------- data ----------
@@ -1575,6 +1987,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
     });
     $('showMore').addEventListener('click', () => { state.outlet.limit += PAGE; render(); });
     $('copySummary').addEventListener('click', () => copyText(T.summaryCsv(currentGroups, state.groupBy), 'Summary table'));
+    $('exportSummary').addEventListener('click', () => {
+      if (typeof XLSX === 'undefined') { toast('The Excel library did not load. Check your connection and reload the page.', true); return; }
+      if (!currentGroups.length) { toast('Nothing to export — no rows match the current filters.', true); return; }
+      const aoa = T.summaryAoa(currentGroups, state.groupBy);
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = aoa[0].map((_, i) => ({ wch: Math.min(36, Math.max(9, ...aoa.map((r) => String(r[i] == null ? '' : r[i]).length + 2))) }));
+      ws['!freeze'] = { xSplit: 1, ySplit: 1 };
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Who visited what');
+      const by = { employee: 'employee', manager: 'reporting line', franchise: 'franchise', state: 'state' }[state.groupBy] || state.groupBy;
+      const name = `Who visited what - ${state.filters.date || 'all dates'} - by ${by}.xlsx`;
+      XLSX.writeFile(wb, name);
+      toast(`Exported ${currentGroups.length} rows to ${name}`);
+    });
     $('copyOutlets').addEventListener('click', () => copyText(T.outletsCsv(currentOutletRows), `${currentOutletRows.length} outlet rows`));
     $('modalClose').addEventListener('click', () => { $('modal').hidden = true; });
     $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) $('modal').hidden = true; });
@@ -1595,6 +2021,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   }
 
   bind();
+  bindSettings();
+  if (location.hash === '#settings') showView('settings');
   boot();
 })();
 
