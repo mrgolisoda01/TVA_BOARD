@@ -278,6 +278,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .dropzone-inner { padding: 28px 40px; border: 2px dashed var(--accent); border-radius: var(--radius); background: var(--surface); font-family: var(--font-display); font-size: 1.3rem; }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70; max-width: min(92vw, 560px); padding: 12px 16px; border-radius: 12px; background: var(--fg); color: var(--bg); font-size: .85rem; box-shadow: var(--shadow); }
 .toast.is-error { background: var(--bad); color: #fff; }
+.toast.is-warn { background: var(--warn); color: #1a1200; }
 .modal { position: fixed; inset: 0; z-index: 80; background: rgba(0, 0, 0, .45); display: grid; place-items: center; padding: 16px; }
 .modal-card { width: min(720px, 100%); background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding-bottom: 16px; }
 .modal-card .card-sub { padding: 0 18px 10px; }
@@ -634,7 +635,7 @@ body { padding-left: var(--rail); }
         <div class="table-wrap">
           <table class="data-table sched-table" id="schedTable"></table>
         </div>
-        <p class="table-hint">"Send now" sends that schedule's report on the sender's next check (within 5 minutes) without affecting its daily run.</p>
+        <p class="table-hint">"Send now" sends that schedule's report on the sender's next check (within 5 minutes) without affecting its daily run. Paused schedules only send with "Send now" — press Resume to make them run daily.</p>
       </section>
 
       <section class="card" id="schedFormCard" hidden>
@@ -664,8 +665,8 @@ body { padding-left: var(--rail); }
           <div class="field">
             <label for="sfActive">Status</label>
             <select id="sfActive">
-              <option value="true">Active</option>
-              <option value="false">Paused</option>
+              <option value="true">Active — runs daily at this time</option>
+              <option value="false">Paused — only "Send now" works</option>
             </select>
           </div>
           <div class="field field-wide">
@@ -1522,10 +1523,10 @@ body { padding-left: var(--rail); }
 
   // ---------- helpers ----------
   let toastTimer;
-  function toast(msg, isError) {
+  function toast(msg, isError, isWarn) {
     const el = $('toast');
-    el.textContent = msg; el.classList.toggle('is-error', !!isError); el.hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, isError ? 7000 : 3500);
+    el.textContent = msg; el.classList.toggle('is-error', !!isError); el.classList.toggle('is-warn', !isError && !!isWarn); el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, isError || isWarn ? 8000 : 3500);
   }
   function openModal(title, text, body) {
     $('modalTitle').textContent = title; $('modalText').textContent = text; $('modalArea').value = body; $('modal').hidden = false;
@@ -1657,7 +1658,7 @@ body { padding-left: var(--rail); }
   }
   function statusTagFor(s) {
     if (s.send_now) return '<span class="tag tag-info">Sending within 5 min</span>';
-    if (!s.active) return '<span class="tag tag-muted">Paused</span>';
+    if (!s.active) return '<span class="tag tag-warn">Paused — press Resume to run daily</span>';
     if (!s.recipients || !s.recipients.length) return '<span class="tag tag-warn">No recipients</span>';
     return '<span class="tag tag-good">Active</span>';
   }
@@ -1741,7 +1742,9 @@ body { padding-left: var(--rail); }
         if (!s.recipients || !s.recipients.length) { toast('Add at least one recipient first.', true); return; }
         await sb(`tva_mail_schedules?id=eq.${s.id}`, { method: 'PATCH', body: { send_now: true }, headers: { Prefer: 'return=minimal' } });
         const fresh = /Running/.test($('senderState').textContent);
-        toast(fresh ? `Queued — "${s.name}" goes out on the sender's next check (within 5 minutes).` : `Queued — but the sender is not running right now, so nothing will go out until it is.`, !fresh);
+        if (!fresh) toast('Queued — but the sender is not running right now, so nothing will go out until it is.', true);
+        else if (!s.active) toast(`Queued — "${s.name}" goes out within 5 minutes. But this schedule is PAUSED: it will not run daily at ${fmtTime(s.send_time)} until you press Resume.`, false, true);
+        else toast(`Queued — "${s.name}" goes out on the sender's next check (within 5 minutes).`);
       }
       await loadSchedules();
     } catch (err) {
