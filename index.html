@@ -330,6 +330,36 @@ body { padding-left: var(--rail); }
 .recips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 380px; }
 .recips .tag { font-weight: 500; text-transform: none; }
 
+/* ---------- Trends ---------- */
+.trend-tools { align-items: center; }
+.trend-controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 0 18px 12px; }
+.trend-controls .period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.trend-controls .period .kpi-label { margin-right: 2px; }
+.trend-controls .arrow { color: var(--muted); }
+.trend-controls input[type=date] { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
+.trend-controls #trendAvail { flex-basis: 100%; margin: 0; }
+.field-inline { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); }
+.field-inline select { padding: 7px 28px 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; }
+.trend-kpis { padding: 4px 18px 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.trend-kpis .kpi { background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; gap: 4px; }
+.legend { white-space: normal; }
+.cmp-table th.later, .cmp-table td.later { background: var(--accent-soft); }
+.delta { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.delta.is-good { color: var(--good); }
+.delta.is-bad { color: var(--bad); }
+.delta.is-flat { color: var(--muted); font-weight: 500; }
+.delta small { font-weight: 500; color: var(--muted); margin-left: 4px; }
+.cmp-table { font-size: .9rem; }
+.cmp-table td:first-child { font-weight: 500; white-space: normal; min-width: 150px; }
+.cmp-table td:first-child { position: static; }
+.cmp-table td, .cmp-wide td { white-space: nowrap; }
+.cmp-table td small.card-sub { white-space: normal; }
+.cmp-wide th.grp { text-align: center; border-left: 1px solid var(--line-2); }
+.cmp-wide td.grp { border-left: 1px solid var(--line-2); }
+.cmp-wide td small { display: block; color: var(--muted); font-size: .72rem; }
+.trend-empty { padding: 28px 18px; color: var(--muted); text-align: center; }
+
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -376,6 +406,10 @@ body { padding-left: var(--rail); }
   <button type="button" class="rail-btn is-active" id="railBoard" data-view="board" title="Board">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v6H4zM13 5h7v3h-7zM13 10h7v9h-7zM4 13h7v6H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
     Board
+  </button>
+  <button type="button" class="rail-btn" id="railTrends" data-view="trends" title="Trends">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 4 4-6 5-3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 6h5v5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Trends
   </button>
   <button type="button" class="rail-btn" id="railSettings" data-view="settings" title="Settings">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
@@ -576,6 +610,89 @@ body { padding-left: var(--rail); }
   </footer>
 
   </div><!-- /viewBoard -->
+
+  <div class="view" id="viewTrends" hidden>
+  <section class="card" aria-label="Trends">
+    <header class="card-head card-head-wrap">
+      <div>
+        <h2>Trends</h2>
+        <p class="card-sub" id="trendMeta">Loading the last two weeks…</p>
+      </div>
+      <div class="head-tools trend-tools">
+        <label class="field-inline">State <select id="trendState" aria-label="State"><option value="all">All states</option></select></label>
+        <button class="btn btn-ghost btn-sm" id="trendExport" type="button">Export Excel</button>
+        <button class="btn btn-ghost btn-sm" id="trendRefresh" type="button">Refresh</button>
+      </div>
+    </header>
+    <div class="trend-controls">
+      <div class="chips" id="trendModes" role="group" aria-label="Compare by">
+        <button type="button" class="chip is-active" data-mode="day">Day vs day</button>
+        <button type="button" class="chip" data-mode="week">Week vs week</button>
+        <button type="button" class="chip" data-mode="month">Month vs month</button>
+        <button type="button" class="chip" data-mode="custom">Custom range</button>
+      </div>
+      <div class="period" data-for="day">
+        <input type="date" id="tdA" aria-label="First day"> <span class="arrow">vs</span> <input type="date" id="tdB" aria-label="Second day">
+      </div>
+      <div class="period" data-for="week" hidden>
+        <span class="kpi-label">Week of</span> <input type="date" id="twA" aria-label="First week"> <span class="arrow">vs week of</span> <input type="date" id="twB" aria-label="Second week">
+      </div>
+      <div class="period" data-for="month" hidden>
+        <input type="month" id="tmA" aria-label="First month"> <span class="arrow">vs</span> <input type="month" id="tmB" aria-label="Second month">
+      </div>
+      <div class="period" data-for="custom" hidden>
+        <input type="date" id="tcAFrom" aria-label="First range from"> <span class="arrow">→</span> <input type="date" id="tcATo" aria-label="First range to">
+        <span class="arrow">vs</span>
+        <input type="date" id="tcBFrom" aria-label="Second range from"> <span class="arrow">→</span> <input type="date" id="tcBTo" aria-label="Second range to">
+      </div>
+      <p class="card-sub" id="trendAvail"></p>
+    </div>
+    <div class="trend-kpis kpis" id="trendKpis"></div>
+    <p class="table-hint" id="trendNote"></p>
+  </section>
+
+  <section class="card" aria-label="Comparison">
+    <header class="card-head card-head-wrap">
+      <div>
+        <h2 id="trendCmpTitle">Comparison</h2>
+        <p class="card-sub" id="trendCmpSub"></p>
+      </div>
+      <div class="head-tools"><span class="card-sub legend"><span class="delta is-good">▲ ▼ green</span> = better · <span class="delta is-bad">▲ ▼ red</span> = worse · for burn and missed outlets, lower is better</span></div>
+    </header>
+    <div class="table-wrap"><table class="data-table cmp-table" id="trendCmpTable"></table></div>
+  </section>
+
+  <section class="card" aria-label="Daily trend">
+    <header class="card-head">
+      <div>
+        <h2 id="trendChartTitle">Day by day — burn vs recovered</h2>
+        <p class="card-sub">Burn = target × 24 bottles × shop price on buying outlets not visited · Recovered = sales invoiced through visits · line = outlet coverage</p>
+      </div>
+    </header>
+    <div class="chart-box"><canvas id="chTrend"></canvas></div>
+  </section>
+
+  <section class="card" aria-label="By state">
+    <header class="card-head">
+      <div>
+        <h2>By state</h2>
+        <p class="card-sub" id="trendStateSub"></p>
+      </div>
+    </header>
+    <div class="table-wrap"><table class="data-table cmp-wide" id="trendStateTable"></table></div>
+  </section>
+
+  <section class="card" aria-label="By employee">
+    <header class="card-head">
+      <div>
+        <h2>By employee</h2>
+        <p class="card-sub" id="trendEmpSub"></p>
+      </div>
+    </header>
+    <div class="table-wrap"><table class="data-table cmp-wide" id="trendEmpTable"></table></div>
+    <p class="table-hint">Sorted by the later side's burn, highest first.</p>
+  </section>
+  </div><!-- /viewTrends -->
 
   <div class="view" id="viewSettings" hidden>
   <section class="settings" aria-label="Settings">
@@ -978,14 +1095,29 @@ body { padding-left: var(--rail); }
       else targetTag = 'Target Achieved';
       const who = prettyName(r.employee);
       const manager = managerOf.get(r.employee) || r.reportingTo || '';
+      const missedBuying = buying === 'Buying' && !visited;
+      const price = priceFor(r.state);
       return Object.assign(r, {
         visited, orderReceived, buying, pulse, keyOutlet, targetTag, hasTarget,
         isVisicooler: /^visicooler$/i.test(r.visicooler.trim()),
         roles: who.roles, roleLabel: who.roles.join(' + '), displayName: who.display, area: who.area,
         manager, managerDisplay: manager ? prettyName(manager).display : '',
         dateKey: dateKey(r.date),
+        converted: buying === 'Non-Buying' && orderReceived,          // non-productive outlet that placed an order = became a buying outlet
+        missedBuying, bottlePrice: price,
+        burn: missedBuying && hasTarget ? t * PRICING.bottlesPerCrate * price : 0, // sales lost by not visiting a buying outlet
+        recovered: visited ? (r.invoiceValue || 0) : 0,               // sales invoiced through a visit
       });
     });
+  }
+
+  // Burn = target crates × bottles per crate × shop price per bottle, for buying outlets that were not visited.
+  // Keep in step with CONFIG in the email sender (apps-script/Code.gs).
+  const PRICING = { bottlesPerCrate: 24, perBottle: { default: 22, 'Tamil Nadu': 19 } };
+  function priceFor(state) {
+    const want = String(state || '').trim().toLowerCase();
+    for (const k in PRICING.perBottle) { if (k !== 'default' && k.toLowerCase() === want) return PRICING.perBottle[k]; }
+    return PRICING.perBottle.default;
   }
 
   // Fields kept when a dataset is stored (bundled sample, remembered upload). Derived fields are rebuilt by finalize().
@@ -993,7 +1125,7 @@ body { padding-left: var(--rail); }
     'durationMin', 'activity', 'orderTaken', 'beatPulse', 'target', 'totalCrate', 'orderValue', 'invoiceValue', 'collection', 'achieved'];
   const stripDerived = (r) => { const o = {}; RAW_KEYS.forEach((k) => { o[k] = r[k]; }); return o; };
 
-  root.TVAParse = { parseWorkbook, finalize, prettyName, toMinutes, toDateStr, dateKey, HEADERS, RAW_KEYS, stripDerived };
+  root.TVAParse = { parseWorkbook, finalize, prettyName, toMinutes, toDateStr, dateKey, HEADERS, RAW_KEYS, stripDerived, PRICING, priceFor };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
@@ -1048,11 +1180,15 @@ body { padding-left: var(--rail); }
       visi: { total: 0, visited: 0 }, nonVisi: { total: 0, visited: 0 }, top: { total: 0, visited: 0 },
       target: 0, achieved: 0, targetOutlets: 0, orderValue: 0, invoiceValue: 0, collection: 0,
       durationSum: 0, durationCount: 0, tags: {}, pulse: {},
+      converted: 0, missedBuying: 0, burnCrates: 0, burn: 0, recovered: 0,
     };
     rows.forEach((r) => {
       const v = r.visited ? 1 : 0;
       a.visited += v;
       if (r.orderReceived) a.ordersReceived++;
+      if (r.converted) a.converted++;
+      if (r.missedBuying) { a.missedBuying++; a.burnCrates += r.hasTarget ? r.target : 0; a.burn += r.burn || 0; }
+      a.recovered += r.recovered || 0;
       const b = r.buying === 'Buying' ? a.buying : r.buying === 'Non-Buying' ? a.nonBuying : a.unmapped;
       b.total++; b.visited += v;
       const vc = r.isVisicooler ? a.visi : a.nonVisi;
@@ -1330,7 +1466,45 @@ body { padding-left: var(--rail); }
     firstRender = false;
   }
 
-  root.TVACharts = { render };
+  // Trends page: one bar pair per day (burn vs recovered) with coverage % as a line on the right axis.
+  function renderTrend(days) {
+    if (typeof Chart === 'undefined') return;
+    const T = tokens();
+    const withData = days.filter((d) => d.hasData);
+    mount('chTrend', {
+      type: 'bar',
+      data: {
+        labels: days.map((d) => d.label),
+        datasets: [
+          { type: 'bar', label: 'Burn (not visited)', data: days.map((d) => d.hasData ? Math.round(d.burn) : null), backgroundColor: alpha(T.bad, 0.85), borderRadius: 5, borderSkipped: false, maxBarThickness: 26, yAxisID: 'y', order: 2 },
+          { type: 'bar', label: 'Recovered (invoiced)', data: days.map((d) => d.hasData ? Math.round(d.recovered) : null), backgroundColor: alpha(T.good, 0.85), borderRadius: 5, borderSkipped: false, maxBarThickness: 26, yAxisID: 'y', order: 2 },
+          { type: 'line', label: 'Coverage %', data: days.map((d) => d.hasData ? Math.round(d.coverage * 1000) / 10 : null), borderColor: T.accent, backgroundColor: T.accent, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, tension: 0.3, spanGaps: true, yAxisID: 'y2', order: 1 },
+        ],
+      },
+      options: baseOptions(T, {
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: axis(T, { grid: { display: false } }),
+          y: axis(T, { beginAtZero: true, ticks: { color: T.muted, callback: (v) => F().inrShort(v) } }),
+          y2: axis(T, { position: 'right', beginAtZero: true, max: 100, grid: { display: false }, ticks: { color: T.muted, callback: (v) => v + '%' } }),
+        },
+        plugins: Object.assign(baseOptions(T).plugins, {
+          tooltip: Object.assign(baseOptions(T).plugins.tooltip, {
+            callbacks: {
+              title: (items) => days[items[0].dataIndex].title,
+              label: (ctx) => {
+                const d = days[ctx.dataIndex];
+                if (ctx.dataset.yAxisID === 'y2') return ` Coverage: ${F().pct(d.coverage)} (${F().int(d.visited)} of ${F().int(d.outlets)})`;
+                return ` ${ctx.dataset.label}: ${F().inr(ctx.raw)}` + (ctx.datasetIndex === 0 ? ` · ${F().int(d.missedBuying)} buying outlets missed` : ` · ${F().num(d.achieved)} crates`);
+              },
+            },
+          }),
+        }),
+      }),
+    }, 320, withData.length ? '' : 'No days with data in this range');
+  }
+
+  root.TVACharts = { render, renderTrend };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
@@ -1591,11 +1765,272 @@ body { padding-left: var(--rail); }
   function showView(name) {
     state.view = name;
     $('viewBoard').hidden = name !== 'board';
+    $('viewTrends').hidden = name !== 'trends';
     $('viewSettings').hidden = name !== 'settings';
     document.querySelectorAll('.rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.view === name));
     if (name === 'settings') { history.replaceState(null, '', '#settings'); loadSettings(); }
+    else if (name === 'trends') { history.replaceState(null, '', '#trends'); loadTrends(false); }
     else { history.replaceState(null, '', location.pathname + location.search); if (state.data) render(); }
     window.scrollTo({ top: 0 });
+  }
+
+  // ---------- trends: this week vs last week, same weekday, last 14 days ----------
+  // History comes from tva_history() as positional arrays in this column order.
+  const HIST_COLS = ['date', 'state', 'franchise', 'employee', 'reportingTo', 'outlet', 'route', 'activity', 'orderTaken', 'beatPulse', 'visicooler', 'target', 'achieved', 'orderValue', 'invoiceValue', 'collection', 'durationMin'];
+  const trends = { available: [], availSet: new Set(), cache: new Map(), mode: 'day', pick: {}, state: 'all', loading: false, result: null };
+  const DAY_MS = 86400000;
+  const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], WDL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dParse = (s) => { const m = String(s || '').match(/^(\d{2})-(\d{2})-(\d{4})$/); return m ? new Date(Date.UTC(+m[3], +m[2] - 1, +m[1])) : null; };
+  const dStr = (d) => `${String(d.getUTCDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getUTCFullYear()}`;
+  const dAdd = (d, n) => new Date(d.getTime() + n * DAY_MS);
+  const dNice = (d) => `${WD[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;
+  const dShort = (d) => `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;
+  const mondayOf = (d) => dAdd(d, -((d.getUTCDay() + 6) % 7));
+  const dIso = (d) => d.toISOString().slice(0, 10);                       // for <input type=date>
+  const dFromIso = (s) => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null; };
+  const daysBetween = (from, to) => { const out = []; for (let d = from; d.getTime() <= to.getTime(); d = dAdd(d, 1)) out.push(d); return out; };
+  const monthStart = (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+  const monthEnd = (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
+  const mIso = (d) => dIso(d).slice(0, 7);
+  const mFromIso = (s) => { const m = String(s || '').match(/^(\d{4})-(\d{2})$/); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, 1)) : null; };
+  const MONL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  // The two sides of the comparison for the current mode: {from, to, label, short}, earlier first.
+  function resolveSides() {
+    const pk = trends.pick, mode = trends.mode;
+    let A, B;
+    if (mode === 'day') { A = { from: pk.dayA, to: pk.dayA }; B = { from: pk.dayB, to: pk.dayB }; }
+    else if (mode === 'week') { const ma = mondayOf(pk.weekA), mb = mondayOf(pk.weekB); A = { from: ma, to: dAdd(ma, 6) }; B = { from: mb, to: dAdd(mb, 6) }; }
+    else if (mode === 'month') { A = { from: monthStart(pk.monthA), to: monthEnd(pk.monthA) }; B = { from: monthStart(pk.monthB), to: monthEnd(pk.monthB) }; }
+    else { A = { from: pk.cAFrom, to: pk.cATo }; B = { from: pk.cBFrom, to: pk.cBTo }; }
+    [A, B].forEach((x) => { if (x.from.getTime() > x.to.getTime()) { const t = x.from; x.from = x.to; x.to = t; } });
+    const sides = A.from.getTime() <= B.from.getTime() ? [A, B] : [B, A];
+    sides.forEach((x) => {
+      if (mode === 'day') { x.label = dNice(x.from); x.short = dShort(x.from); }
+      else if (mode === 'week') { x.label = `Week ${dShort(x.from)} – ${dShort(x.to)}`; x.short = `Wk ${x.from.getUTCDate()} ${MON[x.from.getUTCMonth()]}`; }
+      else if (mode === 'month') { x.label = `${MONL[x.from.getUTCMonth()]} ${x.from.getUTCFullYear()}`; x.short = MON[x.from.getUTCMonth()]; }
+      else { x.label = dStr(x.from) === dStr(x.to) ? dNice(x.from) : `${dNice(x.from)} – ${dNice(x.to)}`; x.short = dStr(x.from) === dStr(x.to) ? dShort(x.from) : `${dShort(x.from)}–${dShort(x.to)}`; }
+    });
+    return { earlier: sides[0], later: sides[1] };
+  }
+
+  async function loadTrends(force) {
+    if (trends.loading) return;
+    trends.loading = true;
+    $('trendMeta').textContent = 'Loading…';
+    try {
+      const avail = (await sb('rpc/tva_available_dates', { method: 'POST', body: {} })) || [];
+      trends.available = avail.filter((a) => dParse(a.date)).sort((a, b) => P.dateKey(a.date) - P.dateKey(b.date));
+      trends.availSet = new Set(trends.available.map((a) => a.date));
+      if (!trends.available.length) { renderTrendsEmpty('No uploads yet — upload a Target vs Achieved file on the Board first.'); return; }
+      const latest = dParse(trends.available[trends.available.length - 1].date), earliest = dParse(trends.available[0].date);
+      // sensible defaults: latest day vs a week earlier, latest week vs the week before, latest month vs the month before
+      const pk = trends.pick;
+      if (!pk.dayA) { pk.dayA = dAdd(latest, -7); pk.dayB = latest; }
+      if (!pk.weekA) { pk.weekA = dAdd(mondayOf(latest), -7); pk.weekB = latest; }
+      if (!pk.monthA) { pk.monthA = new Date(Date.UTC(latest.getUTCFullYear(), latest.getUTCMonth() - 1, 1)); pk.monthB = monthStart(latest); }
+      if (!pk.cAFrom) { pk.cAFrom = dAdd(mondayOf(latest), -7); pk.cATo = dAdd(latest, -7); pk.cBFrom = mondayOf(latest); pk.cBTo = latest; }
+      $('tdA').value = dIso(pk.dayA); $('tdB').value = dIso(pk.dayB);
+      $('twA').value = dIso(pk.weekA); $('twB').value = dIso(pk.weekB);
+      $('tmA').value = mIso(pk.monthA); $('tmB').value = mIso(pk.monthB);
+      $('tcAFrom').value = dIso(pk.cAFrom); $('tcATo').value = dIso(pk.cATo); $('tcBFrom').value = dIso(pk.cBFrom); $('tcBTo').value = dIso(pk.cBTo);
+      document.querySelectorAll('#trendModes .chip').forEach((b) => b.classList.toggle('is-active', b.dataset.mode === trends.mode));
+      document.querySelectorAll('.trend-controls .period').forEach((el) => { el.hidden = el.dataset.for !== trends.mode; });
+      $('trendAvail').textContent = `Days with data: ${trends.available.map((a) => dNice(dParse(a.date))).join(', ')}.`;
+      const { earlier, later } = resolveSides();
+      const lo = earlier.from, hi = new Date(Math.max(earlier.to, later.to));
+      const want = trends.available.map((a) => a.date).filter((sd) => { const d = dParse(sd); return d.getTime() >= lo.getTime() && d.getTime() <= hi.getTime(); });
+      if (force) trends.cache.clear();
+      const missing = want.filter((sd) => !trends.cache.has(sd));
+      if (missing.length) {
+        const hist = (await sb('rpc/tva_history', { method: 'POST', body: { p_dates: missing } })) || [];
+        hist.forEach((h) => {
+          const rows = (h.rows || []).map((arr) => { const o = {}; HIST_COLS.forEach((k, i) => { o[k] = arr[i]; }); return o; });
+          trends.cache.set(h.date, P.finalize(rows));
+        });
+        missing.forEach((sd) => { if (!trends.cache.has(sd)) trends.cache.set(sd, []); });
+      }
+      computeTrends();
+      renderTrends();
+    } catch (e) {
+      console.error(e);
+      renderTrendsEmpty('Could not load the history: ' + (e.message || e));
+    } finally { trends.loading = false; }
+  }
+
+  function computeTrends() {
+    const { earlier: E, later: L } = resolveSides();
+    const all = (d) => trends.cache.get(dStr(d)) || [];
+    const rowsFor = (d) => trends.state === 'all' ? all(d) : all(d).filter((r) => r.state === trends.state);
+    const has = (d) => rowsFor(d).length > 0;
+    const aggOf = (rows) => rows.length ? M.aggregate(rows) : null;
+    const concat = (list) => [].concat(...list.map(rowsFor));
+
+    let daysE = daysBetween(E.from, E.to).filter(has), daysL = daysBetween(L.from, L.to).filter(has);
+    // Same length and a whole number of weeks apart (day vs day a week later, week vs week): compare only weekdays with data on both sides.
+    const lenE = (E.to - E.from) / DAY_MS, lenL = (L.to - L.from) / DAY_MS, gap = (L.from - E.from) / DAY_MS;
+    const aligned = lenE === lenL && gap > 0 && gap % 7 === 0;
+    let dropped = [], noMatch = false;
+    if (aligned) {
+      const matchedL = daysL.filter((d) => has(dAdd(d, -gap)));
+      if (matchedL.length) { dropped = daysL.filter((d) => !has(dAdd(d, -gap))).concat(daysE.filter((d) => !has(dAdd(d, gap)))); daysL = matchedL; daysE = matchedL.map((d) => dAdd(d, -gap)); }
+      else noMatch = daysL.length > 0 && daysE.length > 0;
+    }
+    const rowsE = concat(daysE), rowsL = concat(daysL);
+    const cmp = { E, L, aligned, daysE, daysL, dropped, noMatch, aggE: aggOf(rowsE), aggL: aggOf(rowsL) };
+
+    // day-by-day series across both sides (at most 62 days, ending at the later side's end)
+    const hi = new Date(Math.max(E.to, L.to)), lo = new Date(Math.max(E.from, dAdd(hi, -61)));
+    const stateSet = new Set();
+    const days = daysBetween(lo, hi).map((d) => {
+      all(d).forEach((r) => { if (r.state) stateSet.add(r.state); });
+      const a = aggOf(rowsFor(d));
+      const inE = d.getTime() >= E.from.getTime() && d.getTime() <= E.to.getTime(), inL = d.getTime() >= L.from.getTime() && d.getTime() <= L.to.getTime();
+      return { date: dStr(d), label: dShort(d), title: dNice(d) + (inL ? ' · ' + L.short : inE ? ' · ' + E.short : ''), hasData: !!a, agg: a,
+        burn: a ? a.burn : 0, recovered: a ? a.recovered : 0, coverage: a ? a.coverage : 0, visited: a ? a.visited : 0, outlets: a ? a.outlets : 0, missedBuying: a ? a.missedBuying : 0, achieved: a ? a.achieved : 0 };
+    });
+
+    const groupCmp = (mode) => {
+      const map = new Map();
+      M.groupRows(rowsL, mode).forEach((g) => map.set(g.key, { key: g.key, label: g.label, sub: g.sub, aggL: g.agg, aggE: null }));
+      M.groupRows(rowsE, mode).forEach((g) => { if (map.has(g.key)) map.get(g.key).aggE = g.agg; else map.set(g.key, { key: g.key, label: g.label, sub: g.sub, aggL: null, aggE: g.agg }); });
+      return [...map.values()].sort((a, b) => ((b.aggL ? b.aggL.burn : -1) - (a.aggL ? a.aggL.burn : -1)) || a.label.localeCompare(b.label));
+    };
+    trends.result = { cmp, days, byState: groupCmp('state'), byEmp: groupCmp('employee'), states: [...stateSet].sort() };
+  }
+
+  // Metrics shown in the comparison tables. lower = true means a drop is good (burn, missed outlets).
+  const CMP_METRICS = [
+    { key: 'burn', label: 'Burn — buying outlets not visited', val: (a) => a.burn, fmt: (a) => M.fmt.inr(a.burn), sub: (a) => `${M.fmt.int(a.missedBuying)} outlets · ${M.fmt.num(a.burnCrates)} crates`, kind: 'money', lower: true },
+    { key: 'recovered', label: 'Recovered — invoiced through visits', val: (a) => a.recovered, fmt: (a) => M.fmt.inr(a.recovered), kind: 'money' },
+    { key: 'coverage', label: 'Outlets visited', val: (a) => a.coverage, fmt: (a) => `${M.fmt.int(a.visited)} / ${M.fmt.int(a.outlets)} <small>${M.fmt.pct(a.coverage)}</small>`, kind: 'pct' },
+    { key: 'buying', label: 'Buying outlets visited', val: (a) => a.buying.total ? a.buying.visited / a.buying.total : 0, fmt: (a) => a.buying.total ? `${M.fmt.int(a.buying.visited)} / ${M.fmt.int(a.buying.total)} <small>${M.fmt.pct(a.buying.visited / a.buying.total)}</small>` : '—', kind: 'pct' },
+    { key: 'visi', label: 'Visicooler outlets visited', val: (a) => a.visi.total ? a.visi.visited / a.visi.total : 0, fmt: (a) => a.visi.total ? `${M.fmt.int(a.visi.visited)} / ${M.fmt.int(a.visi.total)} <small>${M.fmt.pct(a.visi.visited / a.visi.total)}</small>` : '—', kind: 'pct' },
+    { key: 'converted', label: 'Non-productive converted', val: (a) => a.converted, fmt: (a) => M.fmt.int(a.converted), kind: 'count' },
+    { key: 'achieved', label: 'Crates sold', val: (a) => a.achieved, fmt: (a) => `${M.fmt.num(a.achieved)} <small>of ${M.fmt.num(a.target)}</small>`, kind: 'count' },
+    { key: 'orderValue', label: 'Sales order value', val: (a) => a.orderValue, fmt: (a) => M.fmt.inr(a.orderValue), kind: 'money' },
+    { key: 'collection', label: 'Cash collection', val: (a) => a.collection, fmt: (a) => M.fmt.inr(a.collection), kind: 'money' },
+  ];
+  // Change from the earlier side to the later side: arrow = direction of the number, colour = better/worse.
+  function deltaHtml(m, laterAgg, earlierAgg) {
+    if (!laterAgg || !earlierAgg) return '<span class="delta is-flat">—</span>';
+    const a = m.val(laterAgg), b = m.val(earlierAgg), diff = a - b;
+    if (Math.abs(diff) < 1e-9) return '<span class="delta is-flat">no change</span>';
+    const better = m.lower ? diff < 0 : diff > 0;
+    const arrow = diff > 0 ? '▲' : '▼', sign = diff > 0 ? '+' : '−';
+    let txt;
+    if (m.kind === 'pct') txt = `${arrow} ${(Math.abs(diff) * 100).toFixed(1)} pts`;
+    else if (m.kind === 'money') txt = `${arrow} ${M.fmt.inr(Math.abs(diff))}` + (b ? `<small>${sign}${Math.round(Math.abs(diff) / b * 100)}%</small>` : '');
+    else txt = `${arrow} ${M.fmt.num(Math.abs(diff))}` + (b ? `<small>${sign}${Math.round(Math.abs(diff) / b * 100)}%</small>` : '');
+    return `<span class="delta ${better ? 'is-good' : 'is-bad'}" title="${better ? 'Better' : 'Worse'} than before">${txt}</span>`;
+  }
+  function cmpTable(el, E, L, aggE, aggL) {
+    let html = `<thead><tr><th>Measure</th><th class="num">${E}</th><th class="num later">${L}</th><th class="num">Change</th></tr></thead><tbody>`;
+    CMP_METRICS.forEach((m) => {
+      const cell = (a) => a ? m.fmt(a) + (m.sub ? `<small class="card-sub" style="display:block">${m.sub(a)}</small>` : '') : '<span class="delta is-flat">no data</span>';
+      html += `<tr><td>${m.label}</td><td class="num">${cell(aggE)}</td><td class="num later">${cell(aggL)}</td><td class="num">${deltaHtml(m, aggL, aggE)}</td></tr>`;
+    });
+    el.innerHTML = html + '</tbody>';
+  }
+  function groupCmpTable(el, list, nameHead, E, L) {
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const cols = CMP_METRICS.filter((m) => ['burn', 'recovered', 'coverage', 'buying', 'achieved', 'collection'].includes(m.key));
+    let html = `<thead><tr><th>${nameHead}</th>` + cols.map((m) => `<th class="num grp">${m.label.split(' — ')[0]} · ${E}</th><th class="num later">${L}</th><th class="num">change</th>`).join('') + '</tr></thead><tbody>';
+    if (!list.length) html += `<tr><td class="empty" colspan="${1 + cols.length * 3}">No data on either side yet.</td></tr>`;
+    list.forEach((g) => {
+      html += `<tr><td>${esc(g.label)}${g.sub ? `<small>${esc(g.sub)}</small>` : ''}</td>` + cols.map((m) =>
+        `<td class="num grp">${g.aggE ? m.fmt(g.aggE) : '—'}</td><td class="num later">${g.aggL ? m.fmt(g.aggL) : '—'}</td><td class="num">${deltaHtml(m, g.aggL, g.aggE)}</td>`).join('') + '</tr>';
+    });
+    el.innerHTML = html + '</tbody>';
+  }
+  function renderTrendsEmpty(msg) {
+    $('trendMeta').textContent = msg;
+    $('trendKpis').innerHTML = '';
+    ['trendCmpTable', 'trendStateTable', 'trendEmpTable'].forEach((id) => { $(id).innerHTML = `<tbody><tr><td class="empty">${msg}</td></tr></tbody>`; });
+    C.renderTrend([]);
+  }
+  function renderTrends() {
+    const R = trends.result;
+    if (!R) return;
+    const stSel = $('trendState');
+    const cur = trends.state;
+    stSel.innerHTML = '<option value="all">All states</option>' + R.states.map((s) => `<option value="${s}">${s}</option>`).join('');
+    stSel.value = R.states.includes(cur) ? cur : 'all';
+    if (stSel.value !== cur) { trends.state = 'all'; computeTrends(); return renderTrends(); }
+
+    const C_ = R.cmp, E = C_.E, L = C_.L;
+    const nDays = (list) => `${list.length} day${list.length === 1 ? '' : 's'}`;
+    const daysTxt = (list) => list.map((d) => WD[d.getUTCDay()] + ' ' + d.getUTCDate()).join(', ');
+    const single = trends.mode === 'day';
+    $('trendMeta').textContent = `${E.label} → ${L.label}` + (trends.state === 'all' ? '' : ` · ${trends.state}`) +
+      (single ? '' : ` · ${nDays(C_.daysE)} vs ${nDays(C_.daysL)} with data`) + (C_.aligned && !single ? ' · same weekdays compared' : '');
+    const notes = [];
+    if (C_.aligned && C_.dropped.length) notes.push(`${daysTxt(C_.dropped)} left out — no matching day on the other side.`);
+    if (C_.noMatch) notes.push('No weekday has data on both sides, so there is nothing to compare yet.');
+    if (!C_.aligned && C_.daysE.length !== C_.daysL.length && C_.daysE.length && C_.daysL.length) notes.push(`The two sides have a different number of days with data (${C_.daysE.length} vs ${C_.daysL.length}), so totals are not like for like.`);
+    if (!C_.daysE.length) notes.push(`No data for ${E.label}.`);
+    if (!C_.daysL.length) notes.push(`No data for ${L.label}.`);
+    $('trendNote').textContent = notes.join(' ');
+    $('trendNote').hidden = !notes.length;
+
+    // Tiles: the later side, with the change from the earlier side
+    const tiles = CMP_METRICS.filter((m) => ['burn', 'recovered', 'coverage', 'buying', 'achieved', 'collection', 'converted'].includes(m.key));
+    $('trendKpis').innerHTML = tiles.map((m) => {
+      const v = C_.aggL ? m.fmt(C_.aggL) : '—';
+      return `<div class="kpi ${m.kind === 'money' ? 'kpi-rupee' : ''}"><div class="kpi-label">${m.label.split(' — ')[0]} · ${L.short}</div><div class="kpi-value">${v}</div><div class="kpi-sub">${C_.aggL && C_.aggE ? `vs ${E.short} ` + deltaHtml(m, C_.aggL, C_.aggE) : C_.aggL ? `no data for ${E.short}` : `no data for ${L.short}`}</div></div>`;
+    }).join('');
+
+    $('trendCmpTitle').textContent = `${E.label}  →  ${L.label}`;
+    $('trendCmpSub').textContent = single ? 'Change = how much each number moved from the first day to the second.'
+      : C_.aligned && C_.daysL.length ? `Totals of ${daysTxt(C_.daysE)} vs ${daysTxt(C_.daysL)}. Change = how much each number moved from the earlier side to the later one.`
+      : `Totals of all days with data on each side (${nDays(C_.daysE)} vs ${nDays(C_.daysL)}). Change = how much each number moved from the earlier side to the later one.`;
+    cmpTable($('trendCmpTable'), E.label + (single ? '' : ` (${nDays(C_.daysE)})`), L.label + (single ? '' : ` (${nDays(C_.daysL)})`), C_.aggE, C_.aggL);
+
+    $('trendChartTitle').textContent = `Day by day — ${dShort(dParse(R.days[0].date))} to ${dShort(dParse(R.days[R.days.length - 1].date))}`;
+    C.renderTrend(R.days);
+
+    $('trendStateSub').textContent = `${E.label} → ${L.label}`;
+    groupCmpTable($('trendStateTable'), R.byState, 'State', E.short, L.short);
+    $('trendEmpSub').textContent = `${E.label} → ${L.label}` + (R.byEmp.length ? ` · ${R.byEmp.length} employees` : '');
+    groupCmpTable($('trendEmpTable'), R.byEmp, 'Employee', E.short, L.short);
+  }
+  function exportTrends() {
+    const R = trends.result;
+    if (!R || typeof XLSX === 'undefined') { toast('Nothing to export yet.', true); return; }
+    const strip = (h) => String(h).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
+    const C_ = R.cmp, E = C_.E, L = C_.L;
+    const cmpAoa = [['Measure', E.label, L.label, 'Change'], ...CMP_METRICS.map((m) => [m.label, C_.aggE ? strip(m.fmt(C_.aggE)) : 'no data', C_.aggL ? strip(m.fmt(C_.aggL)) : 'no data', strip(deltaHtml(m, C_.aggL, C_.aggE))])];
+    const cols = CMP_METRICS.filter((m) => ['burn', 'recovered', 'coverage', 'buying', 'achieved', 'collection', 'converted'].includes(m.key));
+    const grpAoa = (list, head) => [[head, 'Detail', ...cols.flatMap((m) => [`${m.label} · ${E.short}`, `${m.label} · ${L.short}`, 'Change'])],
+      ...list.map((g) => [g.label, g.sub || '', ...cols.flatMap((m) => [g.aggE ? strip(m.fmt(g.aggE)) : '', g.aggL ? strip(m.fmt(g.aggL)) : '', strip(deltaHtml(m, g.aggL, g.aggE))])])];
+    const daily = [['Date', 'Outlets', 'Visited', 'Coverage %', 'Buying visited', 'Buying total', 'Missed buying', 'Burn ₹', 'Recovered ₹', 'Converted', 'Crates sold', 'Target', 'Order value', 'Collection'],
+      ...R.days.filter((d) => d.hasData).map((d) => { const a = d.agg; return [d.date, a.outlets, a.visited, Math.round(a.coverage * 1000) / 10, a.buying.visited, a.buying.total, a.missedBuying, Math.round(a.burn), Math.round(a.recovered), a.converted, Math.round(a.achieved * 100) / 100, Math.round(a.target * 100) / 100, a.orderValue, a.collection]; })];
+    const wb = XLSX.utils.book_new();
+    const add = (name, aoa) => { const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = aoa[0].map((_, i) => ({ wch: Math.min(40, Math.max(10, ...aoa.map((r) => String(r[i] == null ? '' : r[i]).length + 2))) })); XLSX.utils.book_append_sheet(wb, ws, name); };
+    add('Comparison', cmpAoa);
+    add('By state', grpAoa(R.byState, 'State'));
+    add('By employee', grpAoa(R.byEmp, 'Employee'));
+    add('Daily', daily);
+    const name = `Trends ${E.short} vs ${L.short}${trends.state === 'all' ? '' : ' - ' + trends.state}.xlsx`.replace(/[–—]/g, '-').replace(/[\/:*?"<>|]/g, '-');
+    XLSX.writeFile(wb, name);
+    toast(`Exported ${name}`);
+  }
+  function readPicks() {
+    const pk = trends.pick, d = (id) => dFromIso($(id).value), m = (id) => mFromIso($(id).value);
+    const vals = trends.mode === 'day' ? [d('tdA'), d('tdB')] : trends.mode === 'week' ? [d('twA'), d('twB')] : trends.mode === 'month' ? [m('tmA'), m('tmB')] : [d('tcAFrom'), d('tcATo'), d('tcBFrom'), d('tcBTo')];
+    if (vals.some((v) => !v)) return false;
+    if (trends.mode === 'day') { pk.dayA = vals[0]; pk.dayB = vals[1]; }
+    else if (trends.mode === 'week') { pk.weekA = vals[0]; pk.weekB = vals[1]; }
+    else if (trends.mode === 'month') { pk.monthA = vals[0]; pk.monthB = vals[1]; }
+    else { pk.cAFrom = vals[0]; pk.cATo = vals[1]; pk.cBFrom = vals[2]; pk.cBTo = vals[3]; }
+    return true;
+  }
+  function bindTrends() {
+    $('trendModes').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; trends.mode = b.dataset.mode; loadTrends(false); });
+    ['tdA', 'tdB', 'twA', 'twB', 'tmA', 'tmB', 'tcAFrom', 'tcATo', 'tcBFrom', 'tcBTo'].forEach((id) => $(id).addEventListener('change', () => { if (readPicks()) loadTrends(false); }));
+    $('trendState').addEventListener('change', (e) => { trends.state = e.target.value; if (trends.result) { computeTrends(); renderTrends(); } });
+    $('trendRefresh').addEventListener('click', () => loadTrends(true));
+    $('trendExport').addEventListener('click', exportTrends);
   }
 
   // ---------- settings: mail automation ----------
@@ -1768,7 +2203,7 @@ body { padding-left: var(--rail); }
     $('sfCancel').addEventListener('click', () => { $('schedFormCard').hidden = true; });
     $('schedTable').addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (b) scheduleAction(b.dataset.act, b.dataset.id); });
     $('boardUrlSave').addEventListener('click', saveBoardUrl);
-    window.addEventListener('hashchange', () => showView(location.hash === '#settings' ? 'settings' : 'board'));
+    window.addEventListener('hashchange', () => showView(location.hash === '#settings' ? 'settings' : location.hash === '#trends' ? 'trends' : 'board'));
   }
 
   // ---------- data ----------
@@ -1812,6 +2247,7 @@ body { padding-left: var(--rail); }
       toast(`Loaded ${M.fmt.int(parsed.rows.length)} outlets from ${file.name}. Saving to the shared board…`);
       try {
         await shareDataset(stored);
+        trends.cache.clear(); trends.result = null;
         toast(`Loaded ${M.fmt.int(parsed.rows.length)} outlets from ${file.name} · saved for everyone who opens this board.`);
       } catch (e) {
         console.error('Could not save to the shared board:', e);
@@ -2025,7 +2461,9 @@ body { padding-left: var(--rail); }
 
   bind();
   bindSettings();
+  bindTrends();
   if (location.hash === '#settings') showView('settings');
+  else if (location.hash === '#trends') showView('trends');
   boot();
 })();
 
