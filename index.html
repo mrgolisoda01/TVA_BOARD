@@ -111,7 +111,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand-title { font-size: 1.35rem; line-height: 1.1; }
 .brand-sub { color: var(--muted); font-size: .8rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .brand-sub .tag { margin-left: 6px; }
-.topbar-actions { display: flex; gap: 8px; align-items: center; flex: none; }
+.brand-sub-2 { font-size: .74rem; margin-top: 1px; white-space: normal; }
+.brand-sub-2 .is-warn { color: var(--warn); }
+.btn .btn-note { font-size: .68rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); padding: 2px 6px; border: 1px solid var(--line); border-radius: 999px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; flex: none; flex-wrap: wrap; justify-content: flex-end; }
 
 /* ---------- Buttons, chips, segments ---------- */
 .btn {
@@ -380,6 +383,7 @@ body { padding-left: var(--rail); }
   }
   .toast { bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
   .topbar { flex-wrap: wrap; min-width: 0; }
+  .topbar-actions { flex: 1 1 100%; max-width: 100%; justify-content: flex-start; }
   .brand-title { font-size: 1.15rem; }
   .brand-sub { white-space: normal; }
   .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -429,6 +433,7 @@ body { padding-left: var(--rail); }
       <div class="brand-text">
         <h1 class="brand-title">Target vs Achieved Board</h1>
         <p class="brand-sub" id="datasetLine">Loading today's report…</p>
+        <p class="brand-sub brand-sub-2" id="burnLine" hidden></p>
       </div>
     </div>
     <div class="topbar-actions">
@@ -438,6 +443,11 @@ body { padding-left: var(--rail); }
         Upload Excel
       </label>
       <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+      <label class="btn btn-ghost" for="refInput" id="refBtn" title="Outlet report (sales by outlet, one month or more). Used only for the burn calculation — it does not change the board or Trends data.">
+        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 16V9m4 7V5m4 11v-5m4 5V7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Outlet report <span class="btn-note">burn only</span>
+      </label>
+      <input type="file" id="refInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
     </div>
   </header>
 
@@ -666,7 +676,7 @@ body { padding-left: var(--rail); }
     <header class="card-head">
       <div>
         <h2 id="trendChartTitle">Day by day — burn vs recovered</h2>
-        <p class="card-sub">Burn = target × 24 bottles × shop price on buying outlets not visited · Recovered = sales invoiced through visits · line = outlet coverage</p>
+        <p class="card-sub" id="trendBurnDef">Burn = target × 24 bottles × shop price on buying outlets not visited · Recovered = sales invoiced through visits · line = outlet coverage</p>
       </div>
     </header>
     <div class="chart-box"><canvas id="chTrend"></canvas></div>
@@ -1097,6 +1107,11 @@ body { padding-left: var(--rail); }
       const manager = managerOf.get(r.employee) || r.reportingTo || '';
       const missedBuying = buying === 'Buying' && !visited;
       const price = priceFor(r.state);
+      // Burn basis: last month's crates ÷ 4 (one week of sales) when the outlet has history, else the target
+      const ref = referenceFor(r.date);
+      const lm = ref ? lastMonthCrates(r, ref) : 0;
+      const weekly = lm > 0 ? lm / 4 : (hasTarget ? t : 0);
+      const burnBasis = !missedBuying ? '' : lm > 0 ? 'lastMonth' : hasTarget ? 'target' : 'none';
       return Object.assign(r, {
         visited, orderReceived, buying, pulse, keyOutlet, targetTag, hasTarget,
         isVisicooler: /^visicooler$/i.test(r.visicooler.trim()),
@@ -1105,10 +1120,94 @@ body { padding-left: var(--rail); }
         dateKey: dateKey(r.date),
         converted: buying === 'Non-Buying' && orderReceived,          // non-productive outlet that placed an order = became a buying outlet
         missedBuying, bottlePrice: price,
-        burn: missedBuying && hasTarget ? t * PRICING.bottlesPerCrate * price : 0, // sales lost by not visiting a buying outlet
+        lastMonthCrates: lm, refMonth: ref ? ref.month : '', burnBasis, burnCrates: missedBuying ? weekly : 0,
+        burn: missedBuying ? weekly * PRICING.bottlesPerCrate * price : 0, // sales lost by not visiting a buying outlet
         recovered: visited ? (r.invoiceValue || 0) : 0,               // sales invoiced through a visit
       });
     });
+  }
+
+  // ---- last-month sales reference (built from an outlet report, stored in Supabase) ----
+  // { months: { 'yyyy-mm': { outletId: crates } }, outlets: { outletId: { n: name, r: routeCode, s: state } } }
+  let reference = null, referenceByName = new Map();
+  function setReference(ref) {
+    reference = ref && ref.months ? ref : null;
+    referenceByName = new Map();
+    if (reference && reference.outlets) {
+      for (const id in reference.outlets) { const o = reference.outlets[id]; referenceByName.set(nameKey(o.n, o.r), id); }
+    }
+  }
+  const nameKey = (name, route) => `${String(name || '').trim().toLowerCase().replace(/\s+/g, ' ')}|${String(route || '').trim().toUpperCase()}`;
+  // The reference month for a report date: the month before it, else the latest reference month before the report's month.
+  function referenceFor(dateStr) {
+    if (!reference) return null;
+    const m = String(dateStr || '').match(/^(\d{2})-(\d{2})-(\d{4})/);
+    if (!m) return null;
+    const cur = `${m[3]}-${m[2]}`;
+    let y = +m[3], mo = +m[2] - 1;
+    if (mo === 0) { mo = 12; y -= 1; }
+    const prev = `${y}-${String(mo).padStart(2, '0')}`;
+    if (reference.months[prev]) return { month: prev, crates: reference.months[prev] };
+    const keys = Object.keys(reference.months).filter((k) => k < cur).sort();
+    return keys.length ? { month: keys[keys.length - 1], crates: reference.months[keys[keys.length - 1]] } : null;
+  }
+  function lastMonthCrates(r, ref) {
+    const id = String(r.outletId || '').trim();
+    if (id && ref.crates[id] !== undefined) return ref.crates[id] || 0;
+    const alt = referenceByName.get(nameKey(r.outlet, r.routeCode));
+    return alt && ref.crates[alt] !== undefined ? ref.crates[alt] || 0 : 0;
+  }
+  function referenceInfo() {
+    if (!reference) return null;
+    const months = Object.keys(reference.months).sort();
+    const stats = (reference.stats && reference.stats.perMonth) || {};
+    return { months, outlets: Object.keys(reference.outlets || {}).length, perMonth: months.map((mth) => Object.assign({ month: mth, outlets: Object.keys(reference.months[mth]).length, crates: Math.round(Object.values(reference.months[mth]).reduce((a, b) => a + b, 0)) }, stats[mth] || {})) };
+  }
+  // Builds the reference from an outlet report workbook (same daily format, any date span): crates per outlet per month.
+  function parseReference(wb) {
+    let best = null;
+    wb.SheetNames.forEach((name) => {
+      const aoa = root.XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: null });
+      const h = findHeaderRow(aoa);
+      if (h.map.date !== undefined && h.map.totalCrate !== undefined && (h.map.outletId !== undefined || h.map.outlet !== undefined) && (!best || h.score > best.h.score)) best = { name, aoa, h };
+    });
+    if (!best) throw new Error('No sheet with Date, Outlet Id and Achieved Total Crate columns was found.');
+    const { aoa, h } = best, c = h.map;
+    const months = {}, outlets = {}, seen = {}, days = {}, range = {};
+    let rows = 0;
+    for (let i = h.idx + 1; i < aoa.length; i++) {
+      const row = aoa[i]; if (!row) continue;
+      const date = toDateStr(row[c.date]);
+      const dm = date.match(/^(\d{2})-(\d{2})-(\d{4})/); if (!dm) continue;
+      const id = c.outletId !== undefined && row[c.outletId] !== null && row[c.outletId] !== '' ? String(row[c.outletId]).trim() : nameKey(row[c.outlet], c.routeCode !== undefined ? row[c.routeCode] : '');
+      if (!id) continue;
+      rows++;
+      const mth = `${dm[3]}-${dm[2]}`;
+      const crates = toNumber(row[c.totalCrate], 0) || 0;
+      seen[mth] = (seen[mth] || 0) + 1;
+      (days[mth] = days[mth] || new Set()).add(date);
+      const dk = dateKey(date), rg = range[mth] = range[mth] || { first: date, last: date };
+      if (dk < dateKey(rg.first)) rg.first = date;
+      if (dk > dateKey(rg.last)) rg.last = date;
+      if (crates > 0) {
+        months[mth] = months[mth] || {};
+        months[mth][id] = Math.round(((months[mth][id] || 0) + crates) * 100) / 100;
+        if (!outlets[id]) outlets[id] = { n: String(row[c.outlet] || '').trim(), r: c.routeCode !== undefined ? String(row[c.routeCode] || '').trim() : '', s: c.state !== undefined ? String(row[c.state] || '').trim() : '' };
+      }
+    }
+    if (!rows) throw new Error('The sheet has no dated rows.');
+    const monthList = Object.keys(seen).sort();
+    monthList.forEach((m) => { range[m].days = days[m].size; range[m].rows = seen[m]; range[m].outlets = months[m] ? Object.keys(months[m]).length : 0; range[m].crates = months[m] ? Math.round(Object.values(months[m]).reduce((a, b) => a + b, 0)) : 0; });
+    return { months, outlets, stats: { rows, months: monthList, perMonth: range } };
+  }
+  // Month label and a "partial" flag (the report does not reach the last few days of that month).
+  function monthLabel(m) { const [y, mo] = m.split('-'); return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+mo - 1] + ' ' + y; }
+  function monthIsPartial(m, info) {
+    if (!info || !info.last) return false;
+    const [y, mo] = m.split('-').map(Number);
+    const lastDay = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+    const firstD = +String(info.first).slice(0, 2), lastD = +String(info.last).slice(0, 2);
+    return firstD > 3 || lastD < lastDay - 2;
   }
 
   // Burn = target crates × bottles per crate × shop price per bottle, for buying outlets that were not visited.
@@ -1125,7 +1224,7 @@ body { padding-left: var(--rail); }
     'durationMin', 'activity', 'orderTaken', 'beatPulse', 'target', 'totalCrate', 'orderValue', 'invoiceValue', 'collection', 'achieved'];
   const stripDerived = (r) => { const o = {}; RAW_KEYS.forEach((k) => { o[k] = r[k]; }); return o; };
 
-  root.TVAParse = { parseWorkbook, finalize, prettyName, toMinutes, toDateStr, dateKey, HEADERS, RAW_KEYS, stripDerived, PRICING, priceFor };
+  root.TVAParse = { parseWorkbook, finalize, prettyName, toMinutes, toDateStr, dateKey, HEADERS, RAW_KEYS, stripDerived, PRICING, priceFor, setReference, referenceFor, referenceInfo, parseReference, monthLabel, monthIsPartial };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
@@ -1180,14 +1279,14 @@ body { padding-left: var(--rail); }
       visi: { total: 0, visited: 0 }, nonVisi: { total: 0, visited: 0 }, top: { total: 0, visited: 0 },
       target: 0, achieved: 0, targetOutlets: 0, orderValue: 0, invoiceValue: 0, collection: 0,
       durationSum: 0, durationCount: 0, tags: {}, pulse: {},
-      converted: 0, missedBuying: 0, burnCrates: 0, burn: 0, recovered: 0,
+      converted: 0, missedBuying: 0, burnCrates: 0, burn: 0, recovered: 0, burnRef: 0, burnTarget: 0,
     };
     rows.forEach((r) => {
       const v = r.visited ? 1 : 0;
       a.visited += v;
       if (r.orderReceived) a.ordersReceived++;
       if (r.converted) a.converted++;
-      if (r.missedBuying) { a.missedBuying++; a.burnCrates += r.hasTarget ? r.target : 0; a.burn += r.burn || 0; }
+      if (r.missedBuying) { a.missedBuying++; a.burnCrates += r.burnCrates || 0; a.burn += r.burn || 0; if (r.burnBasis === 'lastMonth') a.burnRef++; else if (r.burnBasis === 'target') a.burnTarget++; }
       a.recovered += r.recovered || 0;
       const b = r.buying === 'Buying' ? a.buying : r.buying === 'Non-Buying' ? a.nonBuying : a.unmapped;
       b.total++; b.visited += v;
@@ -1683,6 +1782,7 @@ body { padding-left: var(--rail); }
     url: 'https://bdttoukehavkxsyhxgwy.supabase.co',
     key: 'sb_publishable_stL6yDzgmDFNntNN0A_U4Q_qdDPNqPA',
     table: 'tva_uploads',
+    reference: 'tva_reference', // outlet report (last month's sales per outlet) — used only for the burn calculation
   };
 
   const state = {
@@ -1693,6 +1793,7 @@ body { padding-left: var(--rail); }
     outlet: { q: '', visit: 'all', chips: new Set(), sort: { key: 'visit', dir: 'desc' }, limit: PAGE },
     isSample: false,
     view: 'board',
+    reference: null, // newest outlet report: { file_name, months, outlet_count, data, uploaded_at }
   };
 
   // ---------- helpers ----------
@@ -1748,6 +1849,70 @@ body { padding-left: var(--rail); }
     });
     if (!res.ok) throw await sharedError(res);
   }
+  // ---------- outlet report (last month's sales) — burn basis only ----------
+  // Newest outlet report saved for everyone, or null. Only the per-outlet monthly crates are stored, never the visits,
+  // so it changes nothing on the board or in Trends except how burn is worked out.
+  async function fetchReference() {
+    const rows = await sb(`${SHARED.reference}?select=file_name,months,outlet_count,data,uploaded_at&kind=eq.last_month_sales&order=uploaded_at.desc,id.desc&limit=1`);
+    return rows && rows[0] && rows[0].data && rows[0].data.months ? rows[0] : null;
+  }
+  function applyReference(row) {
+    state.reference = row || null;
+    P.setReference(row ? row.data : null);
+    renderBurnLine();
+  }
+  function renderBurnLine() {
+    const el = $('burnLine'), ref = state.reference, info = P.referenceInfo();
+    const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    if (!ref || !info || !info.months.length) {
+      el.innerHTML = 'Burn basis: target × 24 bottles × shop price. Upload the <b>Outlet report</b> to use last month\'s sales ÷ 4 instead.';
+      el.hidden = false; return;
+    }
+    const parts = info.perMonth.map((m) => {
+      const partial = P.monthIsPartial(m.month, m);
+      return `${P.monthLabel(m.month)}: ${M.fmt.int(m.outlets)} outlets` + (partial ? ` <span class="is-warn">(partial, ${esc(String(m.first).slice(0, 5))} to ${esc(String(m.last).slice(0, 5))})</span>` : '');
+    });
+    el.innerHTML = `Burn basis: last month\'s sales ÷ 4 · ${parts.join(' · ')} · <b>${esc(ref.file_name || 'outlet report')}</b>` + (ref.uploaded_at ? `, ${esc(M.fmt.date(ref.uploaded_at))}` : '');
+    el.title = 'Outlet report used only for burn: ' + info.perMonth.map((m) => `${P.monthLabel(m.month)} ${m.first || ''}–${m.last || ''}: ${M.fmt.int(m.outlets)} outlets with sales, ${M.fmt.int(m.crates)} crates`).join('; ') +
+      '. Burn per buying outlet not visited = its last-month crates ÷ 4 × 24 bottles × shop price; outlets with no last-month sales use their target instead.';
+    el.hidden = false;
+  }
+  // One-line definition of burn for the data in view: which basis was used, and for how many outlets.
+  function burnDefinition(agg) {
+    const info = P.referenceInfo();
+    if (!info || !info.months.length) return 'Burn = target × 24 bottles × shop price on buying outlets not visited';
+    const ref = agg ? agg.burnRef || 0 : 0, tgt = agg ? agg.burnTarget || 0 : 0;
+    return 'Burn = last month\'s crates ÷ 4 × 24 bottles × shop price on buying outlets not visited' +
+      (ref || tgt ? ` (${M.fmt.int(ref)} outlet${ref === 1 ? '' : 's'} from the outlet report, ${M.fmt.int(tgt)} on target)` : '');
+  }
+  async function loadReferenceFile(file) {
+    if (!file) return;
+    if (typeof XLSX === 'undefined') { toast('The Excel reader did not load. Check your connection and reload the page.', true); return; }
+    toast(`Reading outlet report ${file.name}…`);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      const ref = P.parseReference(wb);
+      if (!ref.stats.months.length) throw new Error('No dated rows with Achieved Total Crate were found.');
+      const outletCount = new Set(Object.values(ref.months).flatMap((m) => Object.keys(m))).size;
+      const row = { kind: 'last_month_sales', file_name: file.name, months: ref.stats.months, outlet_count: outletCount, data: ref, uploaded_at: new Date().toISOString() };
+      const summary = ref.stats.months.map((m) => `${P.monthLabel(m)} ${M.fmt.int(ref.stats.perMonth[m].outlets)} outlets / ${M.fmt.int(ref.stats.perMonth[m].crates)} crates`).join(', ');
+      let saved = true;
+      try {
+        await sb(SHARED.reference, { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { kind: row.kind, file_name: row.file_name, months: row.months, outlet_count: row.outlet_count, data: row.data } });
+      } catch (e) { saved = false; console.error('Could not save the outlet report:', e); }
+      applyReference(row);
+      if (state.data) { state.data.rows = P.finalize(state.data.rows); render(); }
+      trends.cache.clear(); trends.result = null;
+      if (state.view === 'trends') loadTrends(true);
+      if (saved) toast(`Outlet report loaded for burn: ${summary}. Saved for everyone and for the emails.`);
+      else toast(`Outlet report loaded on this device only (${summary}) — it could not be saved to the shared board, so the emails still use the old basis.`, true);
+    } catch (e) {
+      console.error(e);
+      toast('Could not read that outlet report: ' + (e.message || e), true);
+    }
+  }
+
   // Generic REST call for the settings tables. Returns parsed JSON (or null for empty responses).
   async function sb(path, opts) {
     opts = opts || {};
@@ -1776,7 +1941,7 @@ body { padding-left: var(--rail); }
 
   // ---------- trends: this week vs last week, same weekday, last 14 days ----------
   // History comes from tva_history() as positional arrays in this column order.
-  const HIST_COLS = ['date', 'state', 'franchise', 'employee', 'reportingTo', 'outlet', 'route', 'activity', 'orderTaken', 'beatPulse', 'visicooler', 'target', 'achieved', 'orderValue', 'invoiceValue', 'collection', 'durationMin'];
+  const HIST_COLS = ['date', 'state', 'franchise', 'employee', 'reportingTo', 'outlet', 'route', 'activity', 'orderTaken', 'beatPulse', 'visicooler', 'target', 'achieved', 'orderValue', 'invoiceValue', 'collection', 'durationMin', 'outletId', 'routeCode'];
   const trends = { available: [], availSet: new Set(), cache: new Map(), mode: 'day', pick: {}, state: 'all', loading: false, result: null };
   const DAY_MS = 86400000;
   const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], WDL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1987,6 +2152,7 @@ body { padding-left: var(--rail); }
     cmpTable($('trendCmpTable'), E.label + (single ? '' : ` (${nDays(C_.daysE)})`), L.label + (single ? '' : ` (${nDays(C_.daysL)})`), C_.aggE, C_.aggL);
 
     $('trendChartTitle').textContent = `Day by day — ${dShort(dParse(R.days[0].date))} to ${dShort(dParse(R.days[R.days.length - 1].date))}`;
+    $('trendBurnDef').textContent = `${burnDefinition(C_.aggL || C_.aggE)} · Recovered = sales invoiced through visits · line = outlet coverage`;
     C.renderTrend(R.days);
 
     $('trendStateSub').textContent = `${E.label} → ${L.label}`;
@@ -2263,8 +2429,13 @@ body { padding-left: var(--rail); }
     if (typeof Chart === 'undefined' || typeof XLSX === 'undefined') toast('Chart or Excel library did not load. Check your internet connection and reload the page.', true);
     const saved = recall();
     // 1. The shared board (newest upload from anyone) — the same for every visitor and every refresh.
+    //    The outlet report (burn basis) loads alongside it and must be in place before the rows are finalised.
+    const [sharedRes, refRes] = await Promise.allSettled([fetchShared(), fetchReference()]);
+    if (refRes.status === 'fulfilled') applyReference(refRes.value);
+    else { console.error('Outlet report unavailable:', refRes.reason); applyReference(null); }
     try {
-      const shared = await fetchShared();
+      if (sharedRes.status === 'rejected') throw sharedRes.reason;
+      const shared = sharedRes.value;
       if (shared) { setData(shared, false); remember(shared); return; }
     } catch (e) {
       console.error('Shared board unavailable:', e);
@@ -2373,6 +2544,7 @@ body { padding-left: var(--rail); }
   // ---------- events ----------
   function bind() {
     $('fileInput').addEventListener('change', (e) => { loadFile(e.target.files[0]); e.target.value = ''; });
+    $('refInput').addEventListener('change', (e) => { loadReferenceFile(e.target.files[0]); e.target.value = ''; });
     ['fDate', 'fState', 'fFranchise', 'fEmployee', 'fManager'].forEach((id) => {
       $(id).addEventListener('change', (e) => { state.filters[{ fDate: 'date', fState: 'state', fFranchise: 'franchise', fEmployee: 'employee', fManager: 'manager' }[id]] = e.target.value; state.outlet.limit = PAGE; render(); });
     });
