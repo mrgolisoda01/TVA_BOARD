@@ -366,6 +366,14 @@ body { padding-left: var(--rail); }
 /* ---------- PJP ---------- */
 .pjp-tools input[type=month] { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
 .pjp-tools select { max-width: 280px; }
+.pjp-date-input { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
+.pjp-day td { white-space: normal; }
+.pjp-day td.name { min-width: 180px; }
+.pjp-day td.beat { min-width: 220px; font-weight: 600; }
+.pjp-day td.beat small { display: block; font-weight: 400; color: var(--muted); font-size: .72rem; }
+.pjp-day td.beat .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+.pjp-day tr.is-off td.beat, .pjp-day tr.is-noplan td.beat, .pjp-day tr.is-blank td.beat { font-weight: 500; color: var(--muted); }
+.pjp-day tr.is-noplan td.name small, .pjp-day tr.is-noplan td.beat { color: var(--muted); }
 .pjp-kpis { padding: 4px 18px 14px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .pjp-kpis .kpi { background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; gap: 4px; }
 .pjp-kpis .kpi-warn .kpi-value { color: var(--warn); }
@@ -758,6 +766,7 @@ body { padding-left: var(--rail); }
         <p class="card-sub" id="pjpMeta">Pick an employee and a month, then import the plan from Excel (DATE · DAY · ROUTE NAME WITH NO) or fill it in below. It is saved for everyone.</p>
       </div>
       <div class="head-tools pjp-tools">
+        <label class="field-inline">State <select id="pjpState" aria-label="State"><option value="all">All states</option></select></label>
         <label class="field-inline">Month <input type="month" id="pjpMonth" aria-label="Month"></label>
         <label class="field-inline">Employee <select id="pjpEmployee" aria-label="Employee"></select></label>
         <label class="btn btn-primary btn-sm" for="pjpImportInput">Import Excel</label>
@@ -766,6 +775,25 @@ body { padding-left: var(--rail); }
       </div>
     </header>
     <div class="pjp-kpis kpis" id="pjpKpis"></div>
+  </section>
+
+  <section class="card" aria-label="Beat of the day">
+    <header class="card-head card-head-wrap">
+      <div>
+        <h2 id="pjpDayTitle">Beat of the day</h2>
+        <p class="card-sub" id="pjpDaySub">Which beat each BDE, BDM and state head is scheduled on.</p>
+      </div>
+      <div class="head-tools">
+        <div class="chips" id="pjpDayChips" role="group" aria-label="Day">
+          <button type="button" class="chip" data-day="-1">Yesterday</button>
+          <button type="button" class="chip is-active" data-day="0">Today</button>
+          <button type="button" class="chip" data-day="1">Tomorrow</button>
+        </div>
+        <input type="date" id="pjpDayDate" class="pjp-date-input" aria-label="Date">
+      </div>
+    </header>
+    <div class="table-wrap"><table class="data-table pjp-day" id="pjpDayTable"></table></div>
+    <p class="table-hint">Click an employee to open their month below. Counts are the outlets on that beat in the daily report on the board.</p>
   </section>
 
   <section class="card" aria-label="Route plan">
@@ -2477,7 +2505,8 @@ body { padding-left: var(--rail); }
   ];
   const PJP_NOISE = new Set(['ROUTE', 'ROUTES', 'RT', 'NO', 'NUMBER', 'SALE', 'SALES', 'THE', 'AND', 'TO', 'OF', 'AREA', 'BEAT']);
   const pjp = {
-    month: '', employee: '', plans: new Map(), routeMap: new Map(), routeMapLoaded: false,
+    month: '', employee: '', state: 'all', day: '', plans: new Map(), plansByMonth: new Map(), routeMap: new Map(), routeMapLoaded: false,
+    routesCache: new Map(), routesCacheFor: null,
     entries: new Map(), fileName: '', loadedMonth: '', loading: false, dirty: false, saveTimer: null, saveState: '', clearArmed: 0,
   };
   const pjpNorm = (s) => String(s == null ? '' : s).toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
@@ -2508,11 +2537,12 @@ body { padding-left: var(--rail); }
     const map = new Map();
     const rows = state.data ? state.data.rows : [];
     rows.forEach((r) => pjpSplitPeople(r.employee).forEach((code) => {
-      if (!map.has(code)) { const who = P.prettyName(code); map.set(code, { code, display: who.display, role: who.roles[0] || 'Other', area: who.area, states: new Set(), managers: new Set(), outlets: 0 }); }
+      if (!map.has(code)) { const who = P.prettyName(code); map.set(code, { code, display: who.display, role: who.roles[0] || 'Other', area: who.area, states: new Set(), managers: new Set(), managerVotes: new Map(), outlets: 0 }); }
       const e = map.get(code);
       if (r.state) e.states.add(r.state);
-      if (r.managerDisplay) e.managers.add(r.managerDisplay);
+      if (r.managerDisplay) e.managerVotes.set(r.managerDisplay, (e.managerVotes.get(r.managerDisplay) || 0) + 1);
     }));
+    map.forEach((e) => { const top = [...e.managerVotes.entries()].sort((a, b) => b[1] - a[1])[0]; if (top) e.managers.add(top[0]); }); // the usual manager, not every joint-visit combination
     pjp.plans.forEach((row, code) => { if (!map.has(code)) { const who = P.prettyName(code); map.set(code, { code, display: who.display, role: who.roles[0] || 'Other', area: who.area, states: new Set(), managers: new Set(), outlets: 0, missing: true }); } });
     const list = [...map.values()];
     list.sort((a, b) => (a.missing ? 1 : 0) - (b.missing ? 1 : 0) || pjpRoleRank(a.role) - pjpRoleRank(b.role) || a.display.localeCompare(b.display));
@@ -2520,6 +2550,13 @@ body { padding-left: var(--rail); }
   }
   // Routes of one employee from the daily report: outlets de-duplicated (latest status), counted per route.
   function pjpRoutesFor(code) {
+    if (pjp.routesCacheFor !== state.data) { pjp.routesCache = new Map(); pjp.routesCacheFor = state.data; }
+    if (pjp.routesCache.has(code)) return pjp.routesCache.get(code);
+    const list = pjpRoutesForUncached(code);
+    pjp.routesCache.set(code, list);
+    return list;
+  }
+  function pjpRoutesForUncached(code) {
     const latest = new Map();
     (state.data ? state.data.rows : []).forEach((r) => {
       if (!pjpSplitPeople(r.employee).includes(code)) return;
@@ -2577,13 +2614,25 @@ body { padding-left: var(--rail); }
     return e;
   }
 
+  // All saved plans of one month (employee → row), fetched once and kept.
+  async function pjpPlansFor(month, force) {
+    if (!force && pjp.plansByMonth.has(month)) return pjp.plansByMonth.get(month);
+    const rows = await sb(`${PJP.table}?select=employee,month,entries,file_name,updated_at&month=eq.${encodeURIComponent(month)}`);
+    const map = new Map((rows || []).map((r) => [r.employee, r]));
+    pjp.plansByMonth.set(month, map);
+    return map;
+  }
+  function pjpRememberPlan(row) { // keep the per-month cache in step after a save or import
+    const map = pjp.plansByMonth.get(row.month);
+    if (map) map.set(row.employee, row);
+    if (row.month === pjp.loadedMonth) pjp.plans.set(row.employee, row);
+  }
   async function pjpLoadMonth(force) {
     if (!pjp.month) return;
     if (!force && pjp.loadedMonth === pjp.month) { pjpSelectEmployee(pjp.employee); return; }
     pjp.loading = true; pjpRender();
     try {
-      const rows = await sb(`${PJP.table}?select=employee,month,entries,file_name,updated_at&month=eq.${encodeURIComponent(pjp.month)}`);
-      pjp.plans = new Map((rows || []).map((r) => [r.employee, r]));
+      pjp.plans = await pjpPlansFor(pjp.month, force);
       if (!pjp.routeMapLoaded) {
         const maps = await sb(`${PJP.routesTable}?select=employee,pjp_route,route`);
         pjp.routeMap = new Map();
@@ -2595,14 +2644,23 @@ body { padding-left: var(--rail); }
       console.error(e); toast('Could not load the PJP from the shared board: ' + (e.message || e), true);
     }
     pjp.loading = false;
+    pjpFillStates();
     pjpFillEmployees();
     pjpSelectEmployee(pjp.employee);
   }
+  function pjpFillStates() {
+    const sel = $('pjpState'), states = [...new Set((state.data ? state.data.rows : []).map((r) => r.state).filter(Boolean))].sort();
+    const cur = pjp.state;
+    sel.innerHTML = '<option value="all">All states</option>' + states.map((st) => `<option value="${st.replace(/"/g, '&quot;')}">${st.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</option>`).join('');
+    pjp.state = states.includes(cur) ? cur : 'all';
+    sel.value = pjp.state;
+  }
+  const pjpInState = (e) => pjp.state === 'all' || e.states.has(pjp.state);
   function pjpFillEmployees() {
-    const sel = $('pjpEmployee'), list = pjpEmployees(), groups = new Map();
+    const sel = $('pjpEmployee'), list = pjpEmployees().filter(pjpInState), groups = new Map();
     list.forEach((e) => { const g = e.missing ? 'Not in the current report' : pjpRoleName(e.role); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(e); });
     sel.innerHTML = '';
-    if (!list.length) { sel.innerHTML = '<option value="">No employees yet — upload a daily report</option>'; return; }
+    if (!list.length) { sel.innerHTML = `<option value="">${state.data ? 'No employees in this state' : 'No employees yet — upload a daily report'}</option>`; pjp.employee = ''; return; }
     groups.forEach((items, g) => {
       const og = document.createElement('optgroup'); og.label = g;
       items.forEach((e) => { const o = document.createElement('option'); o.value = e.code; o.textContent = `${e.display}${pjp.plans.has(e.code) ? ' ✓' : ''}`; og.appendChild(o); });
@@ -2698,6 +2756,67 @@ body { padding-left: var(--rail); }
     $('pjpRoutesTable').innerHTML = rt + '</tbody>';
     $('pjpRoutesSub').textContent = routes.length ? `${routes.length} routes from the daily report · how many times each is planned in ${pjpMonthLabel(pjp.month)}` : '';
     $('pjpExport').disabled = !code;
+    pjpRenderDay();
+  }
+
+  // ---- beat of the day: every employee of a state and the beat planned for one date ----
+  const pjpDayIso = (d) => `${d.slice(6)}-${d.slice(3, 5)}-${d.slice(0, 2)}`;
+  const pjpDayFromIso = (iso) => { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
+  const pjpDayShift = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`; };
+  let pjpDayToken = 0;
+  async function pjpRenderDay() {
+    const date = pjp.day || pjpToday(), month = `${date.slice(6)}-${date.slice(3, 5)}`, token = ++pjpDayToken;
+    const d = dParse(date), nice = d ? `${WDL[d.getUTCDay()]}, ${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}` : date;
+    $('pjpDayTitle').textContent = `Beat of the day — ${nice}${pjp.state !== 'all' ? ` · ${pjp.state}` : ''}`;
+    document.querySelectorAll('#pjpDayChips .chip').forEach((c) => c.classList.toggle('is-active', pjpDayShift(+c.dataset.day) === date));
+    if ($('pjpDayDate').value !== pjpDayIso(date)) $('pjpDayDate').value = pjpDayIso(date);
+    let plans;
+    try { plans = await pjpPlansFor(month, false); }
+    catch (e) { console.error(e); $('pjpDaySub').textContent = 'Could not load the plans for ' + pjpMonthLabel(month) + '.'; return; }
+    if (token !== pjpDayToken) return; // a newer render is on its way
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const emps = pjpEmployees().filter((e) => !e.missing && pjpInState(e));
+    const tot = { onBeat: 0, off: 0, blank: 0, noPlan: 0, buying: 0, nonBuying: 0, visi: 0, total: 0 };
+    const rowsHtml = emps.map((e) => {
+      const plan = plans.get(e.code), entry = plan ? (plan.entries || []).find((x) => x && x.date === date) : null;
+      const routes = pjpRoutesFor(e.code), byName = new Map(routes.map((r) => [r.name, r]));
+      let cls = '', beat = '', r = null;
+      if (!plan) { cls = 'is-noplan'; beat = `<span class="tag tag-muted">No plan for ${esc(pjpMonthLabel(month))}</span>`; tot.noPlan++; }
+      else if (!entry) { cls = 'is-blank'; beat = '<span class="tag tag-muted">Not planned</span>'; tot.blank++; }
+      else if (entry.kind === 'off') { cls = 'is-off'; beat = `<span class="tag tag-accent2">${esc(entry.route)}</span>`; tot.off++; }
+      else {
+        const res = pjpResolve(entry, routes, e.code); r = res.match ? byName.get(res.match) : null; tot.onBeat++;
+        beat = r ? `<span class="swatch" style="background: hsl(${r.hue} 55% 48%)"></span>${esc(entry.route)}${pjpNorm(entry.route) !== pjpNorm(r.name) ? `<small>${esc(r.name)}</small>` : ''}`
+          : `${esc(entry.route)}<small class="is-warn">route not matched to the report</small>`;
+        if (!r) cls = 'is-unmatched';
+        else { tot.buying += r.buying; tot.nonBuying += r.nonBuying; tot.visi += r.visi; tot.total += r.total; }
+      }
+      const num = (v, c) => `<td class="num">${v === null ? '<span class="muted">—</span>' : `<span class="pill ${c}">${M.fmt.int(v)}</span>`}</td>`;
+      return `<tr class="is-clickable ${cls}" data-code="${esc(e.code)}"><td class="name">${esc(e.display)}<small>${esc([e.area, [...e.managers].join(', ') ? 'reports to ' + [...e.managers].join(', ') : ''].filter(Boolean).join(' · '))}</small></td>` +
+        `<td>${esc(pjpRoleName(e.role))}</td><td>${esc([...e.states].join(', '))}</td><td class="beat">${beat}</td>` +
+        (r ? num(r.buying, 'is-good') + num(r.nonBuying, 'is-muted') + num(r.visi, 'is-info') + num(r.total, 'is-total') : '<td class="num muted" colspan="4">—</td>') + '</tr>';
+    });
+    let html = '<thead><tr><th>Employee</th><th>Role</th><th>State</th><th>Beat planned</th><th class="num">Buying</th><th class="num">Non-buying</th><th class="num">Visicooler</th><th class="num">Total outlets</th></tr></thead><tbody>';
+    html += rowsHtml.length ? rowsHtml.join('') : `<tr><td class="empty" colspan="8">${state.data ? 'No employees in this state.' : 'Upload a daily report to see the employees.'}</td></tr>`;
+    html += `</tbody><tfoot><tr><td colspan="4">${emps.length} employee${emps.length === 1 ? '' : 's'} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank + tot.noPlan} not planned</td><td class="num"><span class="pill is-good">${M.fmt.int(tot.buying)}</span></td><td class="num"><span class="pill is-muted">${M.fmt.int(tot.nonBuying)}</span></td><td class="num"><span class="pill is-info">${M.fmt.int(tot.visi)}</span></td><td class="num"><span class="pill is-total">${M.fmt.int(tot.total)}</span></td></tr></tfoot>`;
+    $('pjpDayTable').innerHTML = html;
+    $('pjpDaySub').textContent = `${emps.length} employee${emps.length === 1 ? '' : 's'}${pjp.state !== 'all' ? ' in ' + pjp.state : ''} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank} not planned · ${tot.noPlan} with no plan for ${pjpMonthLabel(month)} · ${M.fmt.int(tot.total)} outlets to cover`;
+  }
+  function pjpSetDay(date) {
+    if (!date) return;
+    pjp.day = date;
+    pjpRenderDay();
+  }
+  async function pjpOpenEmployee(code) {
+    if (!code) return;
+    await pjpSave();
+    const month = `${pjp.day.slice(6)}-${pjp.day.slice(3, 5)}`;
+    pjp.employee = code;
+    if (month !== pjp.month) { pjp.month = month; $('pjpMonth').value = month; }
+    if (!pjpEmployees().filter(pjpInState).some((e) => e.code === code)) { pjp.state = 'all'; $('pjpState').value = 'all'; pjpFillEmployees(); }
+    $('pjpEmployee').value = code;
+    await pjpLoadMonth(false);
+    $('pjpTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function pjpRenderSaveState() {
     const el = $('pjpSaveState');
@@ -2743,7 +2862,7 @@ body { padding-left: var(--rail); }
     try {
       const rows = await sb(`${PJP.table}?on_conflict=employee,month`, { method: 'POST', keepalive: true, headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body });
       const row = rows && rows[0] ? rows[0] : Object.assign({ updated_at: new Date().toISOString() }, body);
-      if (month === pjp.loadedMonth) pjp.plans.set(code, row);
+      pjpRememberPlan(row);
       if (!pjp.dirty) { pjp.saveState = `Saved ${M.fmt.date(row.updated_at || new Date().toISOString())}`; pjpRenderSaveState(); }
       const opt = [...$('pjpEmployee').options].find((o) => o.value === code);
       if (opt && !/ ✓$/.test(opt.textContent)) opt.textContent += ' ✓';
@@ -2850,7 +2969,7 @@ body { padding-left: var(--rail); }
         const body = { employee: emp.code, month, entries: entries.sort((x, y) => P.dateKey(x.date) - P.dateKey(y.date)), file_name: file.name };
         const rows = await sb(`${PJP.table}?on_conflict=employee,month`, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body });
         const row = rows && rows[0] ? rows[0] : Object.assign({ updated_at: new Date().toISOString() }, body);
-        if (month === pjp.loadedMonth) pjp.plans.set(emp.code, row);
+        pjpRememberPlan(row);
         if (!firstKey) firstKey = { code: emp.code, month };
         results.push(`${emp.display} ${pjpMonthLabel(month)}: ${entries.length - offs} route days, ${offs} off${unmatched ? `, ${unmatched} route name${unmatched === 1 ? '' : 's'} to match` : ''}`);
       }
@@ -2886,7 +3005,13 @@ body { padding-left: var(--rail); }
 
   function bindPjp() {
     pjp.month = pjpThisMonth();
+    pjp.day = pjpToday();
     $('pjpMonth').value = pjp.month;
+    $('pjpDayDate').value = pjpDayIso(pjp.day);
+    $('pjpState').addEventListener('change', async (e) => { await pjpSave(); pjp.state = e.target.value; pjpFillEmployees(); pjpSelectEmployee(pjp.employee); });
+    $('pjpDayChips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pjpSetDay(pjpDayShift(+b.dataset.day)); });
+    $('pjpDayDate').addEventListener('change', (e) => pjpSetDay(pjpDayFromIso(e.target.value)));
+    $('pjpDayTable').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-code]'); if (tr) pjpOpenEmployee(tr.dataset.code); });
     $('pjpMonth').addEventListener('change', async (e) => { if (!e.target.value) return; await pjpSave(); pjp.month = e.target.value; pjpLoadMonth(false); });
     $('pjpEmployee').addEventListener('change', async (e) => { await pjpSave(); pjpSelectEmployee(e.target.value); });
     $('pjpImportInput').addEventListener('change', (e) => { pjpImport(e.target.files[0]); e.target.value = ''; });
@@ -2908,7 +3033,7 @@ body { padding-left: var(--rail); }
     renderDatasetLine();
     renderRoleChips();
     render();
-    if (state.view === 'pjp') { pjpFillEmployees(); pjpSelectEmployee(pjp.employee); } // the PJP page reads its routes and counts from this data
+    if (state.view === 'pjp') { pjpFillStates(); pjpFillEmployees(); pjpSelectEmployee(pjp.employee); } // the PJP page reads its routes and counts from this data
   }
 
   function renderDatasetLine() {
