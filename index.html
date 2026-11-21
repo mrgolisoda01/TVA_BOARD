@@ -813,6 +813,7 @@ body { padding-left: var(--rail); }
           <button type="button" class="chip" data-day="1">Tomorrow</button>
         </div>
         <input type="date" id="pjpDayDate" class="pjp-date-input" aria-label="Date">
+        <button class="btn btn-ghost btn-sm" id="pjpDayExport" type="button">Export Excel</button>
       </div>
     </header>
     <div class="table-wrap"><table class="data-table pjp-day" id="pjpDayTable"></table></div>
@@ -2841,30 +2842,53 @@ body { padding-left: var(--rail); }
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const emps = pjpEmployees().filter((e) => !e.missing && pjpInState(e));
     const tot = { onBeat: 0, off: 0, blank: 0, noPlan: 0, buying: 0, nonBuying: 0, visi: 0, total: 0 };
+    const items = [];
     const rowsHtml = emps.map((e) => {
       const plan = plans.get(e.code), entry = plan ? (plan.entries || []).find((x) => x && x.date === date) : null;
       const routes = pjpRoutesFor(e.code), byName = new Map(routes.map((r) => [r.name, r]));
-      let cls = '', beat = '', r = null;
-      if (!plan) { cls = 'is-noplan'; beat = `<span class="tag tag-muted">No plan for ${esc(pjpMonthLabel(month))}</span>`; tot.noPlan++; }
-      else if (!entry) { cls = 'is-blank'; beat = '<span class="tag tag-muted">Not planned</span>'; tot.blank++; }
-      else if (entry.kind === 'off') { cls = 'is-off'; beat = `<span class="tag tag-accent2">${esc(entry.route)}</span>`; tot.off++; }
+      let cls = '', beat = '', r = null, status = '';
+      if (!plan) { cls = 'is-noplan'; status = `No plan for ${pjpMonthLabel(month)}`; beat = `<span class="tag tag-muted">${esc(status)}</span>`; tot.noPlan++; }
+      else if (!entry) { cls = 'is-blank'; status = 'Not planned'; beat = '<span class="tag tag-muted">Not planned</span>'; tot.blank++; }
+      else if (entry.kind === 'off') { cls = 'is-off'; status = entry.route; beat = `<span class="tag tag-accent2">${esc(entry.route)}</span>`; tot.off++; }
       else {
         const res = pjpResolve(entry, routes, e.code); r = res.match ? byName.get(res.match) : null; tot.onBeat++;
+        status = entry.route;
         beat = r ? `<span class="swatch" style="background: hsl(${r.hue} 55% 48%)"></span>${esc(entry.route)}${pjpNorm(entry.route) !== pjpNorm(r.name) ? `<small>${esc(r.name)}</small>` : ''}`
           : `${esc(entry.route)}<small class="is-warn">route not matched to the report</small>`;
         if (!r) cls = 'is-unmatched';
         else { tot.buying += r.buying; tot.nonBuying += r.nonBuying; tot.visi += r.visi; tot.total += r.total; }
       }
+      items.push({ e, entry, r, status, onBeat: !!(entry && entry.kind !== 'off') });
       const num = (v, c) => `<td class="num">${v === null ? '<span class="muted">—</span>' : `<span class="pill ${c}">${M.fmt.int(v)}</span>`}</td>`;
       return `<tr class="is-clickable ${cls}" data-code="${esc(e.code)}"><td class="name">${esc(e.display)}<small>${esc([e.area, [...e.managers].join(', ') ? 'reports to ' + [...e.managers].join(', ') : ''].filter(Boolean).join(' · '))}</small></td>` +
         `<td>${esc(pjpRoleName(e.role))}</td><td>${esc([...e.states].join(', '))}</td><td class="beat">${beat}</td>` +
         (r ? num(r.buying, 'is-good') + num(r.nonBuying, 'is-muted') + num(r.visi, 'is-info') + num(r.total, 'is-total') : '<td class="num muted" colspan="4">—</td>') + '</tr>';
     });
+    pjp.dayView = { date, nice, month, items, tot, filter: pjpFilterLabel() };
+    $('pjpDayExport').disabled = !items.length;
     let html = '<thead><tr><th>Employee</th><th>Role</th><th>State</th><th>Beat planned</th><th class="num">Buying</th><th class="num">Non-buying</th><th class="num">Visicooler</th><th class="num">Total outlets</th></tr></thead><tbody>';
     html += rowsHtml.length ? rowsHtml.join('') : `<tr><td class="empty" colspan="8">${state.data ? 'No employees in this state.' : 'Upload a daily report to see the employees.'}</td></tr>`;
     html += `</tbody><tfoot><tr><td colspan="4">${emps.length} employee${emps.length === 1 ? '' : 's'} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank + tot.noPlan} not planned</td><td class="num"><span class="pill is-good">${M.fmt.int(tot.buying)}</span></td><td class="num"><span class="pill is-muted">${M.fmt.int(tot.nonBuying)}</span></td><td class="num"><span class="pill is-info">${M.fmt.int(tot.visi)}</span></td><td class="num"><span class="pill is-total">${M.fmt.int(tot.total)}</span></td></tr></tfoot>`;
     $('pjpDayTable').innerHTML = html;
     $('pjpDaySub').textContent = `${emps.length} employee${emps.length === 1 ? '' : 's'}${pjpFilterLabel() ? ' (' + pjpFilterLabel() + ')' : ''} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank} not planned · ${tot.noPlan} with no plan for ${pjpMonthLabel(month)} · ${M.fmt.int(tot.total)} outlets to cover`;
+  }
+  // Beat of the day → Excel, exactly as filtered on the page.
+  function pjpExportDay() {
+    const v = pjp.dayView;
+    if (!v || !v.items.length) { toast('Nothing to export for this day.', false, true); return; }
+    const aoa = [[`Beat of the day — ${v.nice}${v.filter ? ' — ' + v.filter : ''}`], [],
+      ['Employee', 'Designation', 'Area', 'Reports to', 'State', 'Beat planned', 'Route in daily report', 'Buying outlets', 'Non-buying outlets', 'Visicooler outlets', 'Total outlets']];
+    v.items.forEach(({ e, entry, r, status, onBeat }) => {
+      aoa.push([e.display, pjpRoleName(e.role), e.area || '', [...e.managers].join(', '), [...e.states].join(', '), status,
+        r ? r.name : (onBeat ? 'not matched' : ''), r ? r.buying : '', r ? r.nonBuying : '', r ? r.visi : '', r ? r.total : '']);
+    });
+    aoa.push([`${v.items.length} employees · ${v.tot.onBeat} on a beat · ${v.tot.off} off · ${v.tot.blank + v.tot.noPlan} not planned`, '', '', '', '', '', 'TOTAL', v.tot.buying, v.tot.nonBuying, v.tot.visi, v.tot.total]);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }];
+    ws['!cols'] = [{ wch: 26 }, { wch: 12 }, { wch: 14 }, { wch: 26 }, { wch: 22 }, { wch: 28 }, { wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Beat of the day');
+    XLSX.writeFile(wb, `Beat of the day - ${v.date}${v.filter ? ' - ' + v.filter.replace(/[\\/:*?"<>|·]/g, '').replace(/\s+/g, ' ').trim() : ''}.xlsx`);
   }
   function pjpSetDay(date) {
     if (!date) return;
@@ -3078,6 +3102,7 @@ body { padding-left: var(--rail); }
     $('pjpDayChips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pjpSetDay(pjpDayShift(+b.dataset.day)); });
     $('pjpDayDate').addEventListener('change', (e) => pjpSetDay(pjpDayFromIso(e.target.value)));
     $('pjpDayTable').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-code]'); if (tr) pjpOpenEmployee(tr.dataset.code); });
+    $('pjpDayExport').addEventListener('click', pjpExportDay);
     $('pjpMonth').addEventListener('change', async (e) => { if (!e.target.value) return; await pjpSave(); pjp.month = e.target.value; pjpLoadMonth(false); });
     $('pjpEmployee').addEventListener('change', async (e) => { await pjpSave(); pjpSelectEmployee(e.target.value); });
     $('pjpImportInput').addEventListener('change', (e) => { pjpImport(e.target.files[0]); e.target.value = ''; });
