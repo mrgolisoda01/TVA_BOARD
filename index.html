@@ -363,6 +363,23 @@ body { padding-left: var(--rail); }
 .trend-empty { padding: 28px 18px; color: var(--muted); text-align: center; }
 
 
+/* ---------- Sign-in ---------- */
+body.is-anon .rail, body.is-anon .app { display: none; }
+.login { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: var(--bg); overflow: auto; }
+.login-card { width: min(380px, 100%); padding: 28px 26px 22px; display: grid; gap: 12px; }
+.login-mark { width: 34px; height: 50px; }
+.login-title { font-size: 1.4rem; }
+.login-card .field input { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: 1rem; }
+.login-error { color: var(--bad); font-size: .85rem; }
+.login-btn { justify-content: center; margin-top: 4px; }
+.login-note { text-align: center; }
+.auth-btn { color: var(--muted); }
+.auth-btn b { color: var(--fg); }
+body[data-role="viewer"] .admin-only { display: none !important; }
+.access-table td { white-space: normal; }
+.access-table select.role-select { padding: 6px 26px 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .82rem; }
+.access-table td.actions { white-space: nowrap; }
+
 /* ---------- PJP ---------- */
 .pjp-tools input[type=month] { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
 .pjp-tools select { max-width: 280px; }
@@ -411,6 +428,8 @@ body { padding-left: var(--rail); }
 }
 .pjp-table select.pjp-route:hover { border-color: var(--muted); border-left-color: var(--rc, var(--muted)); }
 .pjp-table .pjp-note { display: block; color: var(--muted); font-size: .7rem; margin-top: 3px; }
+.pjp-table .pjp-chip { display: inline-block; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line-2); border-left: 5px solid var(--rc, var(--line)); background: var(--surface-2); font-weight: 500; font-size: .82rem; }
+.pjp-table tr.is-unmatched .pjp-chip { border-color: var(--warn); border-left-color: var(--warn); background: var(--warn-soft); }
 .pjp-table tr.is-sun td.pjp-date, .pjp-table tr.is-sun td.pjp-day { color: var(--accent-2); }
 .pjp-table tr.is-sun td.pjp-date small { color: var(--accent-2); opacity: .8; }
 .pjp-table tr.is-today td { background: var(--accent-soft); }
@@ -471,7 +490,23 @@ body { padding-left: var(--rail); }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
-<body>
+<body class="is-anon">
+<div class="login" id="login" hidden>
+  <form class="login-card card" id="loginForm" autocomplete="on">
+    <svg class="brand-mark login-mark" viewBox="0 0 32 48" aria-hidden="true" focusable="false">
+      <path d="M11 2h10v6.5c0 2 .6 3 1.6 4.4L25 16.5c1.7 2.4 2.5 5 2.5 8V42a4 4 0 0 1-4 4H8.5a4 4 0 0 1-4-4V24.5c0-3 .8-5.6 2.5-8l2.4-3.6C10.4 11.5 11 10.5 11 8.5V2z" fill="currentColor" opacity=".18"/>
+      <path d="M11 2h10v6.5c0 2 .6 3 1.6 4.4L25 16.5c1.7 2.4 2.5 5 2.5 8V42a4 4 0 0 1-4 4H8.5a4 4 0 0 1-4-4V24.5c0-3 .8-5.6 2.5-8l2.4-3.6C10.4 11.5 11 10.5 11 8.5V2z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+      <circle cx="16" cy="13" r="3.2" fill="currentColor"/>
+    </svg>
+    <h1 class="login-title">Target vs Achieved Board</h1>
+    <p class="card-sub">Sign in to see the board.</p>
+    <label class="field">Username <input id="loginUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label class="field">Password <input id="loginPass" name="password" type="password" autocomplete="current-password" required></label>
+    <p class="login-error" id="loginError" hidden></p>
+    <button class="btn btn-primary login-btn" id="loginBtn" type="submit">Sign in</button>
+    <p class="card-sub login-note">Viewers can see everything and use the filters. Uploading, importing, exporting and Settings are for the admin login.</p>
+  </form>
+</div>
 <nav class="rail" aria-label="Sections">
   <button type="button" class="rail-btn is-active" id="railBoard" data-view="board" title="Board">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v6H4zM13 5h7v3h-7zM13 10h7v9h-7zM4 13h7v6H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
@@ -485,7 +520,7 @@ body { padding-left: var(--rail); }
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 14h3M12.5 14h4.5M7 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     PJP
   </button>
-  <button type="button" class="rail-btn" id="railSettings" data-view="settings" title="Settings">
+  <button type="button" class="rail-btn admin-only" id="railSettings" data-view="settings" title="Settings">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
     Settings
   </button>
@@ -507,13 +542,14 @@ body { padding-left: var(--rail); }
       </div>
     </div>
     <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm auth-btn" id="authBtn" type="button" title="Sign out"><span id="authWho">…</span> · Sign out</button>
       <button class="btn btn-ghost" id="warningsBtn" type="button" hidden>Notes</button>
-      <label class="btn btn-primary" for="fileInput">
+      <label class="btn btn-primary admin-only" for="fileInput">
         <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 3v10m0-10L6 7m4-4 4 4M4 13v2a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Upload Excel
       </label>
       <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
-      <label class="btn btn-ghost" for="refInput" id="refBtn" title="Outlet report (sales by outlet, one month or more). Used only for the burn calculation — it does not change the board or Trends data.">
+      <label class="btn btn-ghost admin-only" for="refInput" id="refBtn" title="Outlet report (sales by outlet, one month or more). Used only for the burn calculation — it does not change the board or Trends data.">
         <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 16V9m4 7V5m4 11v-5m4 5V7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         Outlet report <span class="btn-note">burn only</span>
       </label>
@@ -635,7 +671,7 @@ body { padding-left: var(--rail); }
           <button type="button" class="seg-btn" data-value="state">State</button>
         </div>
         <button class="btn btn-ghost btn-sm" id="copySummary" type="button">Copy CSV</button>
-        <button class="btn btn-ghost btn-sm" id="exportSummary" type="button">Export Excel</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="exportSummary" type="button">Export Excel</button>
       </div>
     </header>
     <div class="table-wrap">
@@ -657,7 +693,7 @@ body { padding-left: var(--rail); }
           <button type="button" class="seg-btn" data-value="visited">Visited</button>
           <button type="button" class="seg-btn" data-value="not">Not visited</button>
         </div>
-        <button class="btn btn-ghost btn-sm" id="copyOutlets" type="button">Copy CSV</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="copyOutlets" type="button">Copy CSV</button>
       </div>
     </header>
     <div class="chips chips-row" id="outletChips" role="group" aria-label="Quick filters">
@@ -700,7 +736,7 @@ body { padding-left: var(--rail); }
       </div>
       <div class="head-tools trend-tools">
         <label class="field-inline">State <select id="trendState" aria-label="State"><option value="all">All states</option></select></label>
-        <button class="btn btn-ghost btn-sm" id="trendExport" type="button">Export Excel</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="trendExport" type="button">Export Excel</button>
         <button class="btn btn-ghost btn-sm" id="trendRefresh" type="button">Refresh</button>
       </div>
     </header>
@@ -792,9 +828,9 @@ body { padding-left: var(--rail); }
         </div>
         <label class="field-inline">Month <input type="month" id="pjpMonth" aria-label="Month"></label>
         <label class="field-inline">Employee <select id="pjpEmployee" aria-label="Employee"></select></label>
-        <label class="btn btn-primary btn-sm" for="pjpImportInput">Import Excel</label>
+        <label class="btn btn-primary btn-sm admin-only" for="pjpImportInput">Import Excel</label>
         <input type="file" id="pjpImportInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
-        <button class="btn btn-ghost btn-sm" id="pjpExport" type="button">Export Excel</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="pjpExport" type="button">Export Excel</button>
       </div>
     </header>
     <div class="pjp-kpis kpis" id="pjpKpis"></div>
@@ -813,7 +849,7 @@ body { padding-left: var(--rail); }
           <button type="button" class="chip" data-day="1">Tomorrow</button>
         </div>
         <input type="date" id="pjpDayDate" class="pjp-date-input" aria-label="Date">
-        <button class="btn btn-ghost btn-sm" id="pjpDayExport" type="button">Export Excel</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="pjpDayExport" type="button">Export Excel</button>
       </div>
     </header>
     <div class="table-wrap"><table class="data-table pjp-day" id="pjpDayTable"></table></div>
@@ -828,12 +864,12 @@ body { padding-left: var(--rail); }
       </div>
       <div class="head-tools">
         <span class="card-sub pjp-save" id="pjpSaveState"></span>
-        <button class="btn btn-ghost btn-sm" id="pjpRepeatWeek" type="button" title="Copy the first 7 days' pattern to the rest of the month">Repeat first week</button>
-        <button class="btn btn-ghost btn-sm" id="pjpClear" type="button">Clear month</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="pjpRepeatWeek" type="button" title="Copy the first 7 days' pattern to the rest of the month">Repeat first week</button>
+        <button class="btn btn-ghost btn-sm admin-only" id="pjpClear" type="button">Clear month</button>
       </div>
     </header>
     <div class="table-wrap"><table class="data-table pjp-table" id="pjpTable"></table></div>
-    <p class="table-hint">Pick a route on each day — every change saves by itself. Buying, non-buying and visicooler are the outlets assigned to this employee on that route in the daily report on the board. An imported route name the report does not know shows in amber: choose the right route once and it is remembered for next month too.</p>
+    <p class="table-hint"><span class="admin-only">Pick a route on each day — every change saves by itself. </span> Buying, non-buying and visicooler are the outlets assigned to this employee on that route in the daily report on the board. An imported route name the report does not know shows in amber: choose the right route once and it is remembered for next month too.</p>
   </section>
 
   <section class="card" aria-label="Routes">
@@ -851,6 +887,7 @@ body { padding-left: var(--rail); }
   <section class="settings" aria-label="Settings">
     <aside class="card settings-nav" aria-label="Settings sections">
       <button type="button" class="is-active" data-section="mail">Mail automation</button>
+      <button type="button" data-section="access">Logins &amp; access</button>
     </aside>
 
     <div class="settings-main" id="settingsMail">
@@ -967,6 +1004,39 @@ body { padding-left: var(--rail); }
             <button class="btn btn-primary btn-sm" id="boardUrlSave" type="button">Save link</button>
           </div>
         </div>
+      </section>
+    </div>
+
+    <div class="settings-main" id="settingsAccess" hidden>
+      <section class="card">
+        <header class="card-head card-head-wrap">
+          <div>
+            <h2>Logins &amp; access</h2>
+            <p class="card-sub"><b>Admin</b> logins can do everything. <b>Viewer</b> logins see the board, Trends and PJP and use the filters, but cannot upload, import, export, edit a plan or open Settings. Give each person their own login so you can remove it later.</p>
+          </div>
+          <div class="head-tools"><button class="btn btn-ghost btn-sm" id="accessRefresh" type="button">Refresh</button></div>
+        </header>
+        <div class="table-wrap"><table class="data-table access-table" id="accessTable"></table></div>
+        <p class="table-hint">A sign-in stays valid for 30 days on that device. Changing a password or removing a login signs it out everywhere. After 5 wrong attempts a login is paused for a minute. "Remove" asks twice.</p>
+      </section>
+      <section class="card">
+        <header class="card-head"><div><h2>Add a login</h2><p class="card-sub">Username: letters, digits, dots, dashes or underscores. Password: at least 6 characters. Tell the person their username and password yourself.</p></div></header>
+        <form class="form-grid" id="userForm" autocomplete="off">
+          <label class="field">Username <input id="userName" autocomplete="off" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9][A-Za-z0-9._\-]{2,31}" required></label>
+          <label class="field">Role <select id="userRole"><option value="viewer">Viewer — see only</option><option value="admin">Admin — everything</option></select></label>
+          <label class="field">Password <input id="userPass" type="password" autocomplete="new-password" minlength="6" required></label>
+          <label class="field">Again <input id="userPass2" type="password" autocomplete="new-password" minlength="6" required></label>
+          <div class="form-actions field-wide"><button class="btn btn-primary btn-sm" type="submit">Add login</button></div>
+        </form>
+      </section>
+      <section class="card">
+        <header class="card-head"><div><h2>Change a password</h2><p class="card-sub">For any login, including your own. At least 6 characters.</p></div></header>
+        <form class="form-grid" id="passForm" autocomplete="off">
+          <label class="field">Login <select id="passUser"></select></label>
+          <label class="field">New password <input id="passNew" type="password" autocomplete="new-password" minlength="6" required></label>
+          <label class="field">Again <input id="passAgain" type="password" autocomplete="new-password" minlength="6" required></label>
+          <div class="form-actions field-wide"><button class="btn btn-primary btn-sm" type="submit">Change password</button></div>
+        </form>
       </section>
     </div>
   </section>
@@ -1961,13 +2031,84 @@ body { padding-left: var(--rail); }
     try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
   }
 
+  // ---------- sign-in (two shared logins: admin / viewer) ----------
+  // The session token goes with every request as the x-tva-token header; the database decides what it may read or change.
+  const AUTH_KEY = 'tva-board:auth:v1';
+  const auth = { token: '', username: '', role: '' };
+  const isAdmin = () => auth.role === 'admin';
+  function loadAuth() { try { Object.assign(auth, JSON.parse(localStorage.getItem(AUTH_KEY) || '{}')); } catch (e) { /* ignore */ } }
+  function saveAuth() { try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); } catch (e) { /* ignore */ } }
+  function clearAuth() { auth.token = ''; auth.username = ''; auth.role = ''; try { localStorage.removeItem(AUTH_KEY); } catch (e) { /* ignore */ } }
+  function showLogin(message) {
+    document.body.classList.add('is-anon'); delete document.body.dataset.role;
+    $('login').hidden = false;
+    $('loginError').textContent = message || ''; $('loginError').hidden = !message;
+    $('loginBtn').disabled = false; $('loginBtn').textContent = 'Sign in';
+    setTimeout(() => $('loginUser').focus(), 50);
+  }
+  function applyRole() {
+    document.body.dataset.role = auth.role;
+    $('authWho').innerHTML = `<b>${auth.username.replace(/[&<>]/g, '')}</b> (${auth.role === 'admin' ? 'admin' : 'viewer'})`;
+    if (!isAdmin() && state.view === 'settings') showView('board');
+  }
+  let initialHash = location.hash;
+  function enterApp() {
+    $('login').hidden = true; document.body.classList.remove('is-anon');
+    applyRole();
+    if (initialHash === '#settings') showView(isAdmin() ? 'settings' : 'board');
+    else if (initialHash === '#trends') showView('trends');
+    else if (initialHash === '#pjp') showView('pjp');
+    initialHash = '';
+    boot();
+  }
+  async function start() {
+    loadAuth();
+    if (auth.token) {
+      try {
+        const me = await sb('rpc/tva_whoami', { method: 'POST', body: {} });
+        if (me && me.role) { auth.role = me.role; auth.username = me.username; saveAuth(); enterApp(); return; }
+        clearAuth(); showLogin('Your sign-in has expired — please sign in again.'); return;
+      } catch (e) {
+        console.error(e); showLogin('Could not reach the board right now (' + (e.message || e) + '). Check the connection and sign in again.'); return;
+      }
+    }
+    showLogin('');
+  }
+  async function submitLogin(e) {
+    e.preventDefault();
+    const btn = $('loginBtn'); btn.disabled = true; btn.textContent = 'Signing in…';
+    $('loginError').hidden = true;
+    try {
+      const r = await sb('rpc/tva_login', { method: 'POST', body: { p_username: $('loginUser').value.trim(), p_password: $('loginPass').value } });
+      if (!r || !r.ok) { showLogin((r && r.error) || 'Could not sign in.'); $('loginPass').select(); return; }
+      auth.token = r.token; auth.username = r.username; auth.role = r.role; saveAuth();
+      $('loginPass').value = '';
+      enterApp();
+    } catch (err) {
+      console.error(err); showLogin('Could not reach the board: ' + (err.message || err));
+    }
+  }
+  async function signOut() {
+    try { await sb('rpc/tva_logout', { method: 'POST', body: {} }); } catch (e) { /* the token is dropped anyway */ }
+    clearAuth();
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+    location.hash = ''; location.reload();
+  }
+  // A write refused by the database (not admin, or the sign-in ran out)
+  function accessDenied(err) { return /row-level security|42501|permission denied/i.test(String(err && err.message || err)); }
+
   // ---------- shared copy (Supabase REST) ----------
   function sharedHeaders(extra) {
-    return Object.assign({ apikey: SHARED.key, Authorization: 'Bearer ' + SHARED.key, 'Content-Type': 'application/json' }, extra || {});
+    const h = { apikey: SHARED.key, Authorization: 'Bearer ' + SHARED.key, 'Content-Type': 'application/json' };
+    if (auth.token) h['x-tva-token'] = auth.token;
+    return Object.assign(h, extra || {});
   }
   async function sharedError(res) {
     let msg = `${res.status} ${res.statusText}`.trim();
     try { const j = await res.json(); if (j && j.message) msg = j.message; } catch (e) { /* no JSON body */ }
+    if (res.status === 401 || res.status === 403 || /row-level security/i.test(msg)) {
+      msg = isAdmin() ? 'The board refused this change — your sign-in may have run out. Sign out and in again.' : 'Only the admin login can make changes.';
+    }
     return new Error(msg);
   }
   // Newest upload on the shared board, as { rows, meta } — or null when nothing has been uploaded yet.
@@ -2030,6 +2171,7 @@ body { padding-left: var(--rail); }
   }
   async function loadReferenceFile(file) {
     if (!file) return;
+    if (!isAdmin()) { toast('Only the admin login can upload the outlet report.', false, true); return; }
     if (typeof XLSX === 'undefined') { toast('The Excel reader did not load. Check your connection and reload the page.', true); return; }
     toast(`Reading outlet report ${file.name}…`);
     try {
@@ -2077,6 +2219,7 @@ body { padding-left: var(--rail); }
     $('viewPjp').hidden = name !== 'pjp';
     $('viewSettings').hidden = name !== 'settings';
     document.querySelectorAll('.rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.view === name));
+    if (name === 'settings' && !isAdmin()) { showView('board'); return; }
     if (name === 'settings') { history.replaceState(null, '', '#settings'); loadSettings(); }
     else if (name === 'trends') { history.replaceState(null, '', '#trends'); loadTrends(false); }
     else if (name === 'pjp') { history.replaceState(null, '', '#pjp'); pjpLoadMonth(false); }
@@ -2506,8 +2649,91 @@ body { padding-left: var(--rail); }
       toast(value ? 'Board link saved — it will be added to every report email.' : 'Board link cleared.');
     } catch (err) { console.error(err); toast('Could not save the link: ' + (err.message || err), true); }
   }
+  // ---- Access & passwords (admin) ----
+  let removeArmed = { user: '', at: 0 };
+  async function loadAccess() {
+    const t = $('accessTable');
+    t.innerHTML = '<tbody><tr><td class="empty">Loading…</td></tr></tbody>';
+    try {
+      const rows = await sb('rpc/tva_logins', { method: 'POST', body: {} });
+      if (!rows) { t.innerHTML = '<tbody><tr><td class="empty">Only the admin can see this.</td></tr></tbody>'; return; }
+      const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const people = rows.filter((r) => r.username !== 'sender');
+      t.innerHTML = '<thead><tr><th>Login</th><th>Role</th><th>Last sign-in</th><th class="num">Signed-in devices</th><th>Password changed</th><th></th></tr></thead><tbody>' +
+        people.map((r) => {
+          const me = r.username === auth.username;
+          const roleCell = me ? `<span class="tag ${r.role === 'admin' ? 'tag-accent' : 'tag-muted'}">${r.role === 'admin' ? 'Admin' : 'Viewer'}</span>`
+            : `<select class="role-select" data-user="${esc(r.username)}" aria-label="Role of ${esc(r.username)}"><option value="viewer"${r.role === 'viewer' ? ' selected' : ''}>Viewer — see only</option><option value="admin"${r.role === 'admin' ? ' selected' : ''}>Admin — everything</option></select>`;
+          return `<tr><td class="name">${esc(r.username)}${me ? ' <span class="tag tag-accent">you</span>' : ''}</td><td>${roleCell}</td><td>${r.last_seen ? esc(M.fmt.date(r.last_seen)) : '<span class="muted">never</span>'}</td><td class="num">${r.sessions}</td><td>${esc(M.fmt.date(r.updated_at))}</td>` +
+            `<td class="actions">${me ? '' : `<button class="btn btn-ghost btn-sm" type="button" data-remove="${esc(r.username)}">Remove</button>`}</td></tr>`;
+        }).join('') + '</tbody>';
+      const sel = $('passUser'), cur = sel.value;
+      sel.innerHTML = people.map((r) => `<option value="${esc(r.username)}">${esc(r.username)}${r.username === auth.username ? ' (you)' : ''}</option>`).join('');
+      if (people.some((r) => r.username === cur)) sel.value = cur;
+    } catch (e) { t.innerHTML = `<tbody><tr><td class="empty">${String(e.message || e).replace(/[&<>]/g, '')}</td></tr></tbody>`; }
+  }
+  async function addUser(e) {
+    e.preventDefault();
+    const u = $('userName').value.trim(), role = $('userRole').value, a = $('userPass').value, b = $('userPass2').value;
+    if (a !== b) { toast('The two passwords do not match.', true); return; }
+    try {
+      const r = await sb('rpc/tva_user_add', { method: 'POST', body: { p_username: u, p_role: role, p_password: a } });
+      if (!r || !r.ok) { toast((r && r.error) || 'Could not add the login.', true); return; }
+      $('userName').value = ''; $('userPass').value = ''; $('userPass2').value = '';
+      toast(`Login "${r.username}" added as ${r.role}.`);
+      loadAccess();
+    } catch (err) { toast('Could not add the login: ' + (err.message || err), true); }
+  }
+  async function removeUser(user, btn) {
+    if (removeArmed.user !== user || Date.now() - removeArmed.at > 4000) {
+      removeArmed = { user, at: Date.now() }; btn.textContent = 'Press again to remove'; btn.classList.add('is-danger');
+      setTimeout(() => { if (btn.isConnected) { btn.textContent = 'Remove'; btn.classList.remove('is-danger'); } }, 4000);
+      return;
+    }
+    removeArmed = { user: '', at: 0 };
+    try {
+      const r = await sb('rpc/tva_user_remove', { method: 'POST', body: { p_username: user } });
+      if (!r || !r.ok) { toast((r && r.error) || 'Could not remove the login.', true); return; }
+      toast(`Login "${user}" removed and signed out everywhere.`);
+      loadAccess();
+    } catch (err) { toast('Could not remove the login: ' + (err.message || err), true); }
+  }
+  async function setUserRole(user, role, sel) {
+    try {
+      const r = await sb('rpc/tva_user_set_role', { method: 'POST', body: { p_username: user, p_role: role } });
+      if (!r || !r.ok) { toast((r && r.error) || 'Could not change the role.', true); loadAccess(); return; }
+      toast(`"${user}" is now ${role === 'admin' ? 'an admin' : 'a viewer'}.`);
+    } catch (err) { toast('Could not change the role: ' + (err.message || err), true); loadAccess(); }
+  }
+  async function changePassword(e) {
+    e.preventDefault();
+    const user = $('passUser').value, a = $('passNew').value, b = $('passAgain').value;
+    if (a.length < 6) { toast('Use at least 6 characters.', true); return; }
+    if (a !== b) { toast('The two passwords do not match.', true); return; }
+    try {
+      const r = await sb('rpc/tva_set_password', { method: 'POST', body: { p_username: user, p_password: a } });
+      if (!r || !r.ok) { toast((r && r.error) || 'Could not change the password.', true); return; }
+      $('passNew').value = ''; $('passAgain').value = '';
+      toast(`Password for "${user}" changed. ${user === auth.username ? 'Your other devices are signed out.' : 'Everyone using that login is signed out.'}`);
+      loadAccess();
+    } catch (err) { toast('Could not change the password: ' + (err.message || err), true); }
+  }
+  function showSettingsSection(name) {
+    document.querySelectorAll('.settings-nav button').forEach((b) => b.classList.toggle('is-active', b.dataset.section === name));
+    $('settingsMail').hidden = name !== 'mail';
+    $('settingsAccess').hidden = name !== 'access';
+    if (name === 'access') loadAccess();
+  }
   function bindSettings() {
     document.querySelectorAll('.rail-btn').forEach((b) => b.addEventListener('click', () => showView(b.dataset.view)));
+    document.querySelectorAll('.settings-nav button').forEach((b) => b.addEventListener('click', () => showSettingsSection(b.dataset.section)));
+    $('accessRefresh').addEventListener('click', loadAccess);
+    $('passForm').addEventListener('submit', changePassword);
+    $('userForm').addEventListener('submit', addUser);
+    $('accessTable').addEventListener('click', (e) => { const b = e.target.closest('button[data-remove]'); if (b) removeUser(b.dataset.remove, b); });
+    $('accessTable').addEventListener('change', (e) => { const s = e.target.closest('select.role-select'); if (s) setUserRole(s.dataset.user, s.value, s); });
+    $('loginForm').addEventListener('submit', submitLogin);
+    $('authBtn').addEventListener('click', signOut);
     $('mailRefresh').addEventListener('click', () => { loadSettings(); toast('Refreshed.'); });
     $('schedAdd').addEventListener('click', () => openScheduleForm(null));
     $('schedForm').addEventListener('submit', saveScheduleForm);
@@ -2747,7 +2973,7 @@ body { padding-left: var(--rail); }
     ((saved && saved.entries) || []).forEach((e) => { if (e && e.date) { const r = pjpResolve(e, routes, pjp.employee); if ((r.match || null) !== (e.match || null)) changed = true; pjp.entries.set(e.date, r); } });
     pjp.dirty = false; pjp.saveState = saved && saved.updated_at ? `Saved ${M.fmt.date(saved.updated_at)}` : '';
     pjpRender();
-    if (changed && routes.length) pjpMarkDirty(); // a route name matched now that the report knows it — keep the saved copy in step
+    if (changed && routes.length && isAdmin()) pjpMarkDirty(); // a route name matched now that the report knows it — keep the saved copy in step
   }
 
   // ---- rendering ----
@@ -2802,10 +3028,14 @@ body { padding-left: var(--rail); }
       const cls = [d.dow === 0 ? 'is-sun' : '', d.date === today ? 'is-today' : '', e ? (e.kind === 'off' ? 'is-off' : (!e.match ? 'is-unmatched' : '')) : 'is-blank'].filter(Boolean).join(' ');
       const style = r ? ` style="--rc: hsl(${r.hue} 55% 48%)"` : '';
       const note = e && e.kind !== 'off' && e.match && pjpNorm(e.route) !== pjpNorm(e.match) ? `<small class="pjp-note">in the file: ${esc(e.route)}</small>` : '';
+      const routeCell = isAdmin() ? `<select class="pjp-route" data-date="${d.date}" aria-label="Route for ${d.date}"${style}>${opts(e)}</select>${note}`
+        : !e ? '<span class="muted">—</span>'
+        : e.kind === 'off' ? `<span class="tag tag-accent2">${esc(e.route)}</span>`
+        : `<span class="pjp-chip"${style}>${esc(e.route)}</span>${e.match && pjpNorm(e.route) !== pjpNorm(e.match) ? `<small class="pjp-note">${esc(e.match)}</small>` : ''}`;
       html += `<tr class="${cls}" data-date="${d.date}"><td class="pjp-date"><b>${d.date.slice(0, 2)}</b><small>${d.date.slice(3)}</small></td><td class="pjp-day">${d.day}</td>` +
-        `<td class="route"><select class="pjp-route" data-date="${d.date}" aria-label="Route for ${d.date}"${style}>${opts(e)}</select>${note}</td>` +
+        `<td class="route">${routeCell}</td>` +
         (r ? num(r.buying, 'is-good') + num(r.nonBuying, 'is-muted') + num(r.visi, 'is-info') + num(r.total, 'is-total')
-          : e && e.kind !== 'off' ? `<td class="num" colspan="4"><span class="tag tag-warn">Not in the report — choose the route from the list</span></td>`
+          : e && e.kind !== 'off' ? `<td class="num" colspan="4"><span class="tag tag-warn">${isAdmin() ? 'Not in the report — choose the route from the list' : 'Route not matched to the report'}</span></td>`
           : '<td class="num muted" colspan="4">—</td>') + '</tr>';
     });
     html += `</tbody><tfoot><tr><td colspan="3">${tot.planned} route day${tot.planned === 1 ? '' : 's'} · ${tot.off} off · ${tot.blank} not planned</td>${num(tot.buying, 'is-good')}${num(tot.nonBuying, 'is-muted')}${num(tot.visi, 'is-info')}${num(tot.visits, 'is-total')}</tr></tfoot>`;
@@ -3025,6 +3255,7 @@ body { padding-left: var(--rail); }
   }
   async function pjpImport(file) {
     if (!file) return;
+    if (!isAdmin()) { toast('Only the admin login can import a PJP.', false, true); return; }
     if (typeof XLSX === 'undefined') { toast('The Excel reader did not load. Check your connection and reload the page.', true); return; }
     if (!state.data) { toast('The daily report is still loading — try the import again in a moment.', false, true); return; }
     toast(`Reading ${file.name}…`);
@@ -3142,6 +3373,7 @@ body { padding-left: var(--rail); }
 
   async function loadFile(file) {
     if (!file) return;
+    if (!isAdmin()) { toast('Only the admin login can upload a report.', false, true); return; }
     if (typeof XLSX === 'undefined') { toast('The Excel reader did not load. Check your connection and reload the page.', true); return; }
     toast(`Reading ${file.name}…`);
     try {
@@ -3361,10 +3593,10 @@ body { padding-left: var(--rail); }
 
     // drag & drop anywhere on the page
     let dragDepth = 0;
-    document.addEventListener('dragenter', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { dragDepth++; $('dropzone').hidden = false; } });
+    document.addEventListener('dragenter', (e) => { if (isAdmin() && e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { dragDepth++; $('dropzone').hidden = false; } });
     document.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) $('dropzone').hidden = true; });
     document.addEventListener('dragover', (e) => { e.preventDefault(); });
-    document.addEventListener('drop', (e) => { e.preventDefault(); dragDepth = 0; $('dropzone').hidden = true; loadFile(e.dataTransfer.files && e.dataTransfer.files[0]); });
+    document.addEventListener('drop', (e) => { e.preventDefault(); dragDepth = 0; $('dropzone').hidden = true; if (isAdmin()) loadFile(e.dataTransfer.files && e.dataTransfer.files[0]); });
 
     // re-draw charts when the theme changes
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -3377,10 +3609,7 @@ body { padding-left: var(--rail); }
   bindSettings();
   bindTrends();
   bindPjp();
-  if (location.hash === '#settings') showView('settings');
-  else if (location.hash === '#trends') showView('trends');
-  else if (location.hash === '#pjp') showView('pjp');
-  boot();
+  start(); // sign in (or confirm the remembered sign-in), then load the board
 })();
 
 </script>
