@@ -366,6 +366,22 @@ body { padding-left: var(--rail); }
 /* ---------- PJP ---------- */
 .pjp-tools input[type=month] { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
 .pjp-tools select { max-width: 280px; }
+/* multi-select dropdown (checkbox list) */
+.msel { position: relative; }
+.msel-btn { display: inline-flex; align-items: center; gap: 8px; max-width: 260px; padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; cursor: pointer; }
+.msel-btn:hover { border-color: var(--muted); }
+.msel-btn .msel-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msel-btn .msel-caret { color: var(--muted); font-size: .8rem; }
+.msel.is-set .msel-btn { border-color: var(--accent); background: var(--accent-soft); }
+.msel-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 40; min-width: 240px; max-width: min(92vw, 340px); background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--radius-sm); box-shadow: var(--shadow); padding: 6px; }
+.msel-actions { display: flex; gap: 4px; padding: 2px 4px 6px; border-bottom: 1px solid var(--line-2); margin-bottom: 4px; }
+.msel-actions button { border: 0; background: transparent; color: var(--accent); font-size: .78rem; font-weight: 600; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+.msel-actions button:hover { background: var(--surface-2); }
+.msel-list { max-height: 260px; overflow: auto; display: grid; }
+.msel-list label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: .85rem; color: var(--fg); cursor: pointer; white-space: normal; }
+.msel-list label:hover { background: var(--surface-2); }
+.msel-list input { accent-color: var(--accent); margin: 0; }
+.msel-list small { color: var(--muted); margin-left: auto; font-size: .72rem; }
 .pjp-date-input { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
 .pjp-day td { white-space: normal; }
 .pjp-day td.name { min-width: 180px; }
@@ -766,7 +782,14 @@ body { padding-left: var(--rail); }
         <p class="card-sub" id="pjpMeta">Pick an employee and a month, then import the plan from Excel (DATE · DAY · ROUTE NAME WITH NO) or fill it in below. It is saved for everyone.</p>
       </div>
       <div class="head-tools pjp-tools">
-        <label class="field-inline">State <select id="pjpState" aria-label="State"><option value="all">All states</option></select></label>
+        <div class="field-inline">State
+          <div class="msel" id="pjpStateSel"><button type="button" class="msel-btn" aria-haspopup="true" aria-expanded="false"><span class="msel-label">All states</span><span class="msel-caret" aria-hidden="true">▾</span></button>
+            <div class="msel-pop" hidden><div class="msel-actions"><button type="button" data-act="all">All</button><button type="button" data-act="none">Clear</button></div><div class="msel-list"></div></div></div>
+        </div>
+        <div class="field-inline">Designation
+          <div class="msel" id="pjpRoleSel"><button type="button" class="msel-btn" aria-haspopup="true" aria-expanded="false"><span class="msel-label">All designations</span><span class="msel-caret" aria-hidden="true">▾</span></button>
+            <div class="msel-pop" hidden><div class="msel-actions"><button type="button" data-act="all">All</button><button type="button" data-act="none">Clear</button></div><div class="msel-list"></div></div></div>
+        </div>
         <label class="field-inline">Month <input type="month" id="pjpMonth" aria-label="Month"></label>
         <label class="field-inline">Employee <select id="pjpEmployee" aria-label="Employee"></select></label>
         <label class="btn btn-primary btn-sm" for="pjpImportInput">Import Excel</label>
@@ -2505,7 +2528,7 @@ body { padding-left: var(--rail); }
   ];
   const PJP_NOISE = new Set(['ROUTE', 'ROUTES', 'RT', 'NO', 'NUMBER', 'SALE', 'SALES', 'THE', 'AND', 'TO', 'OF', 'AREA', 'BEAT']);
   const pjp = {
-    month: '', employee: '', state: 'all', day: '', plans: new Map(), plansByMonth: new Map(), routeMap: new Map(), routeMapLoaded: false,
+    month: '', employee: '', states: new Set(), roles: new Set(), day: '', plans: new Map(), plansByMonth: new Map(), routeMap: new Map(), routeMapLoaded: false,
     routesCache: new Map(), routesCacheFor: null,
     entries: new Map(), fileName: '', loadedMonth: '', loading: false, dirty: false, saveTimer: null, saveState: '', clearArmed: 0,
   };
@@ -2648,19 +2671,60 @@ body { padding-left: var(--rail); }
     pjpFillEmployees();
     pjpSelectEmployee(pjp.employee);
   }
-  function pjpFillStates() {
-    const sel = $('pjpState'), states = [...new Set((state.data ? state.data.rows : []).map((r) => r.state).filter(Boolean))].sort();
-    const cur = pjp.state;
-    sel.innerHTML = '<option value="all">All states</option>' + states.map((st) => `<option value="${st.replace(/"/g, '&quot;')}">${st.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</option>`).join('');
-    pjp.state = states.includes(cur) ? cur : 'all';
-    sel.value = pjp.state;
+  // A dropdown with checkboxes (several can be ticked). Nothing ticked = everything.
+  function multiSelect(root, opts) {
+    const btn = root.querySelector('.msel-btn'), pop = root.querySelector('.msel-pop'), list = root.querySelector('.msel-list'), label = root.querySelector('.msel-label');
+    let options = [], selected = new Set();
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const paint = () => {
+      const names = options.filter((o) => selected.has(o.value)).map((o) => o.label);
+      label.textContent = !names.length ? opts.allLabel : names.length <= 2 ? names.join(', ') : `${names.length} ${opts.noun}`;
+      root.classList.toggle('is-set', names.length > 0);
+      list.querySelectorAll('input').forEach((i) => { i.checked = selected.has(i.value); });
+    };
+    const open = (yes) => { pop.hidden = !yes; btn.setAttribute('aria-expanded', yes ? 'true' : 'false'); };
+    btn.addEventListener('click', () => open(pop.hidden));
+    document.addEventListener('click', (e) => { if (!root.contains(e.target)) open(false); });
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { open(false); btn.focus(); } });
+    pop.addEventListener('click', (e) => {
+      const act = e.target.closest('button[data-act]');
+      if (!act) return;
+      selected = act.dataset.act === 'all' ? new Set(options.map((o) => o.value)) : new Set();
+      paint(); opts.onChange(new Set(selected));
+    });
+    list.addEventListener('change', (e) => {
+      const i = e.target; if (!(i instanceof HTMLInputElement)) return;
+      if (i.checked) selected.add(i.value); else selected.delete(i.value);
+      paint(); opts.onChange(new Set(selected));
+    });
+    return {
+      setOptions(next) { // [{ value, label, hint }]
+        options = next;
+        selected = new Set([...selected].filter((v) => options.some((o) => o.value === v)));
+        list.innerHTML = options.map((o) => `<label><input type="checkbox" value="${esc(o.value)}"> ${esc(o.label)}${o.hint ? `<small>${esc(o.hint)}</small>` : ''}</label>`).join('') || '<label class="muted">Nothing to choose yet</label>';
+        paint();
+        return new Set(selected);
+      },
+      get() { return new Set(selected); },
+      set(vals) { selected = new Set([...vals].filter((v) => options.some((o) => o.value === v))); paint(); },
+    };
   }
-  const pjpInState = (e) => pjp.state === 'all' || e.states.has(pjp.state);
+  let pjpStateSel = null, pjpRoleSel = null;
+  function pjpFillStates() {
+    const all = pjpEmployees().filter((e) => !e.missing);
+    const states = [...new Set(all.flatMap((e) => [...e.states]))].sort();
+    const roles = [...new Set(all.map((e) => e.role))].sort((a, b) => pjpRoleRank(a) - pjpRoleRank(b) || a.localeCompare(b));
+    const count = (fn) => all.filter(fn).length;
+    pjp.states = pjpStateSel.setOptions(states.map((st) => ({ value: st, label: st, hint: `${count((e) => e.states.has(st))}` })));
+    pjp.roles = pjpRoleSel.setOptions(roles.map((r) => ({ value: r, label: pjpRoleName(r), hint: `${count((e) => e.role === r)}` })));
+  }
+  const pjpInState = (e) => (!pjp.states.size || [...e.states].some((st) => pjp.states.has(st))) && (!pjp.roles.size || pjp.roles.has(e.role));
+  const pjpFilterLabel = () => [pjp.states.size ? [...pjp.states].join(', ') : '', pjp.roles.size ? [...pjp.roles].map(pjpRoleName).join(', ') : ''].filter(Boolean).join(' · ');
   function pjpFillEmployees() {
     const sel = $('pjpEmployee'), list = pjpEmployees().filter(pjpInState), groups = new Map();
     list.forEach((e) => { const g = e.missing ? 'Not in the current report' : pjpRoleName(e.role); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(e); });
     sel.innerHTML = '';
-    if (!list.length) { sel.innerHTML = `<option value="">${state.data ? 'No employees in this state' : 'No employees yet — upload a daily report'}</option>`; pjp.employee = ''; return; }
+    if (!list.length) { sel.innerHTML = `<option value="">${state.data ? 'Nobody matches the state / designation filter' : 'No employees yet — upload a daily report'}</option>`; pjp.employee = ''; return; }
     groups.forEach((items, g) => {
       const og = document.createElement('optgroup'); og.label = g;
       items.forEach((e) => { const o = document.createElement('option'); o.value = e.code; o.textContent = `${e.display}${pjp.plans.has(e.code) ? ' ✓' : ''}`; og.appendChild(o); });
@@ -2767,7 +2831,7 @@ body { padding-left: var(--rail); }
   async function pjpRenderDay() {
     const date = pjp.day || pjpToday(), month = `${date.slice(6)}-${date.slice(3, 5)}`, token = ++pjpDayToken;
     const d = dParse(date), nice = d ? `${WDL[d.getUTCDay()]}, ${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}` : date;
-    $('pjpDayTitle').textContent = `Beat of the day — ${nice}${pjp.state !== 'all' ? ` · ${pjp.state}` : ''}`;
+    $('pjpDayTitle').textContent = `Beat of the day — ${nice}${pjpFilterLabel() ? ` · ${pjpFilterLabel()}` : ''}`;
     document.querySelectorAll('#pjpDayChips .chip').forEach((c) => c.classList.toggle('is-active', pjpDayShift(+c.dataset.day) === date));
     if ($('pjpDayDate').value !== pjpDayIso(date)) $('pjpDayDate').value = pjpDayIso(date);
     let plans;
@@ -2800,7 +2864,7 @@ body { padding-left: var(--rail); }
     html += rowsHtml.length ? rowsHtml.join('') : `<tr><td class="empty" colspan="8">${state.data ? 'No employees in this state.' : 'Upload a daily report to see the employees.'}</td></tr>`;
     html += `</tbody><tfoot><tr><td colspan="4">${emps.length} employee${emps.length === 1 ? '' : 's'} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank + tot.noPlan} not planned</td><td class="num"><span class="pill is-good">${M.fmt.int(tot.buying)}</span></td><td class="num"><span class="pill is-muted">${M.fmt.int(tot.nonBuying)}</span></td><td class="num"><span class="pill is-info">${M.fmt.int(tot.visi)}</span></td><td class="num"><span class="pill is-total">${M.fmt.int(tot.total)}</span></td></tr></tfoot>`;
     $('pjpDayTable').innerHTML = html;
-    $('pjpDaySub').textContent = `${emps.length} employee${emps.length === 1 ? '' : 's'}${pjp.state !== 'all' ? ' in ' + pjp.state : ''} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank} not planned · ${tot.noPlan} with no plan for ${pjpMonthLabel(month)} · ${M.fmt.int(tot.total)} outlets to cover`;
+    $('pjpDaySub').textContent = `${emps.length} employee${emps.length === 1 ? '' : 's'}${pjpFilterLabel() ? ' (' + pjpFilterLabel() + ')' : ''} · ${tot.onBeat} on a beat · ${tot.off} off · ${tot.blank} not planned · ${tot.noPlan} with no plan for ${pjpMonthLabel(month)} · ${M.fmt.int(tot.total)} outlets to cover`;
   }
   function pjpSetDay(date) {
     if (!date) return;
@@ -2813,7 +2877,7 @@ body { padding-left: var(--rail); }
     const month = `${pjp.day.slice(6)}-${pjp.day.slice(3, 5)}`;
     pjp.employee = code;
     if (month !== pjp.month) { pjp.month = month; $('pjpMonth').value = month; }
-    if (!pjpEmployees().filter(pjpInState).some((e) => e.code === code)) { pjp.state = 'all'; $('pjpState').value = 'all'; pjpFillEmployees(); }
+    if (!pjpEmployees().filter(pjpInState).some((e) => e.code === code)) { pjp.states = new Set(); pjp.roles = new Set(); pjpStateSel.set([]); pjpRoleSel.set([]); pjpFillEmployees(); }
     $('pjpEmployee').value = code;
     await pjpLoadMonth(false);
     $('pjpTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3008,7 +3072,9 @@ body { padding-left: var(--rail); }
     pjp.day = pjpToday();
     $('pjpMonth').value = pjp.month;
     $('pjpDayDate').value = pjpDayIso(pjp.day);
-    $('pjpState').addEventListener('change', async (e) => { await pjpSave(); pjp.state = e.target.value; pjpFillEmployees(); pjpSelectEmployee(pjp.employee); });
+    const onFilter = async () => { await pjpSave(); pjpFillEmployees(); pjpSelectEmployee(pjp.employee); };
+    pjpStateSel = multiSelect($('pjpStateSel'), { allLabel: 'All states', noun: 'states', onChange: (v) => { pjp.states = v; onFilter(); } });
+    pjpRoleSel = multiSelect($('pjpRoleSel'), { allLabel: 'All designations', noun: 'designations', onChange: (v) => { pjp.roles = v; onFilter(); } });
     $('pjpDayChips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pjpSetDay(pjpDayShift(+b.dataset.day)); });
     $('pjpDayDate').addEventListener('change', (e) => pjpSetDay(pjpDayFromIso(e.target.value)));
     $('pjpDayTable').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-code]'); if (tr) pjpOpenEmployee(tr.dataset.code); });
