@@ -363,6 +363,48 @@ body { padding-left: var(--rail); }
 .trend-empty { padding: 28px 18px; color: var(--muted); text-align: center; }
 
 
+/* ---------- PJP ---------- */
+.pjp-tools input[type=month] { padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: .85rem; font-family: inherit; }
+.pjp-tools select { max-width: 280px; }
+.pjp-kpis { padding: 4px 18px 14px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.pjp-kpis .kpi { background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; gap: 4px; }
+.pjp-kpis .kpi-warn .kpi-value { color: var(--warn); }
+.pjp-kpis .kpi-good .kpi-value { color: var(--good); }
+.pjp-kpis .kpi-sub { white-space: normal; overflow-wrap: anywhere; }
+.pjp-kpis .is-warn { color: var(--warn); font-weight: 600; }
+.pjp-save { font-variant-numeric: tabular-nums; }
+.pjp-save.is-saving { color: var(--warn); }
+.pjp-save.is-bad { color: var(--bad); }
+.pjp-table td { white-space: normal; }
+.pjp-table td.pjp-date { font-family: var(--font-mono); font-variant-numeric: tabular-nums; line-height: 1.15; min-width: 72px; }
+.pjp-table td.pjp-date b { font-size: 1rem; }
+.pjp-table td.pjp-date small { display: block; color: var(--muted); font-size: .68rem; }
+.pjp-table td.pjp-day { color: var(--muted); min-width: 90px; }
+.pjp-table td.route { min-width: 280px; }
+.pjp-table select.pjp-route {
+  width: 100%; max-width: 420px; padding: 7px 28px 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+  border-left: 5px solid var(--rc, var(--line)); background: var(--surface-2); color: var(--fg); font-size: .82rem; font-weight: 500; cursor: pointer;
+}
+.pjp-table select.pjp-route:hover { border-color: var(--muted); border-left-color: var(--rc, var(--muted)); }
+.pjp-table .pjp-note { display: block; color: var(--muted); font-size: .7rem; margin-top: 3px; }
+.pjp-table tr.is-sun td.pjp-date, .pjp-table tr.is-sun td.pjp-day { color: var(--accent-2); }
+.pjp-table tr.is-sun td.pjp-date small { color: var(--accent-2); opacity: .8; }
+.pjp-table tr.is-today td { background: var(--accent-soft); }
+.pjp-table tr.is-today td:first-child { background: var(--accent-soft); }
+.pjp-table tr.is-blank select.pjp-route { color: var(--muted); border-style: dashed; background: transparent; }
+.pjp-table tr.is-off select.pjp-route { color: var(--muted); font-style: italic; background: transparent; }
+.pjp-table tr.is-unmatched select.pjp-route { border-color: var(--warn); border-left-color: var(--warn); background: var(--warn-soft); }
+.pjp-table td.muted, .pjp-routes td.muted, .muted { color: var(--muted); }
+.pjp-table tfoot td { font-weight: 600; }
+.pill { display: inline-block; min-width: 34px; text-align: center; padding: 3px 8px; border-radius: 999px; font-family: var(--font-mono); font-size: .78rem; font-weight: 600; background: var(--surface-2); border: 1px solid var(--line-2); }
+.pill.is-good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.pill.is-info { background: var(--info-soft); color: var(--info); border-color: transparent; }
+.pill.is-muted { color: var(--muted); }
+.pill.is-total { background: var(--accent-soft); color: var(--fg); border-color: transparent; }
+.pjp-routes td.name .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; }
+.pjp-routes tr.is-never td.name { color: var(--warn); }
+.btn.is-danger { border-color: var(--bad); color: var(--bad); }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -414,6 +456,10 @@ body { padding-left: var(--rail); }
   <button type="button" class="rail-btn" id="railTrends" data-view="trends" title="Trends">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 4 4-6 5-3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 6h5v5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Trends
+  </button>
+  <button type="button" class="rail-btn" id="railPjp" data-view="pjp" title="PJP — monthly route plan">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 14h3M12.5 14h4.5M7 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    PJP
   </button>
   <button type="button" class="rail-btn" id="railSettings" data-view="settings" title="Settings">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
@@ -703,6 +749,51 @@ body { padding-left: var(--rail); }
     <p class="table-hint">Sorted by the later side's burn, highest first.</p>
   </section>
   </div><!-- /viewTrends -->
+
+  <div class="view" id="viewPjp" hidden>
+  <section class="card" aria-label="PJP">
+    <header class="card-head card-head-wrap">
+      <div>
+        <h2>PJP — monthly route plan</h2>
+        <p class="card-sub" id="pjpMeta">Pick an employee and a month, then import the plan from Excel (DATE · DAY · ROUTE NAME WITH NO) or fill it in below. It is saved for everyone.</p>
+      </div>
+      <div class="head-tools pjp-tools">
+        <label class="field-inline">Month <input type="month" id="pjpMonth" aria-label="Month"></label>
+        <label class="field-inline">Employee <select id="pjpEmployee" aria-label="Employee"></select></label>
+        <label class="btn btn-primary btn-sm" for="pjpImportInput">Import Excel</label>
+        <input type="file" id="pjpImportInput" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+        <button class="btn btn-ghost btn-sm" id="pjpExport" type="button">Export Excel</button>
+      </div>
+    </header>
+    <div class="pjp-kpis kpis" id="pjpKpis"></div>
+  </section>
+
+  <section class="card" aria-label="Route plan">
+    <header class="card-head card-head-wrap">
+      <div>
+        <h2 id="pjpTitle">Route plan</h2>
+        <p class="card-sub" id="pjpSub"></p>
+      </div>
+      <div class="head-tools">
+        <span class="card-sub pjp-save" id="pjpSaveState"></span>
+        <button class="btn btn-ghost btn-sm" id="pjpRepeatWeek" type="button" title="Copy the first 7 days' pattern to the rest of the month">Repeat first week</button>
+        <button class="btn btn-ghost btn-sm" id="pjpClear" type="button">Clear month</button>
+      </div>
+    </header>
+    <div class="table-wrap"><table class="data-table pjp-table" id="pjpTable"></table></div>
+    <p class="table-hint">Pick a route on each day — every change saves by itself. Buying, non-buying and visicooler are the outlets assigned to this employee on that route in the daily report on the board. An imported route name the report does not know shows in amber: choose the right route once and it is remembered for next month too.</p>
+  </section>
+
+  <section class="card" aria-label="Routes">
+    <header class="card-head">
+      <div>
+        <h2>Routes of this employee</h2>
+        <p class="card-sub" id="pjpRoutesSub"></p>
+      </div>
+    </header>
+    <div class="table-wrap"><table class="data-table pjp-routes" id="pjpRoutesTable"></table></div>
+  </section>
+  </div><!-- /viewPjp -->
 
   <div class="view" id="viewSettings" hidden>
   <section class="settings" aria-label="Settings">
@@ -1917,7 +2008,7 @@ body { padding-left: var(--rail); }
   async function sb(path, opts) {
     opts = opts || {};
     const res = await fetch(`${SHARED.url}/rest/v1/${path}`, {
-      method: opts.method || 'GET', cache: 'no-store',
+      method: opts.method || 'GET', cache: 'no-store', keepalive: !!opts.keepalive,
       headers: sharedHeaders(opts.headers),
       body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
     });
@@ -1931,10 +2022,12 @@ body { padding-left: var(--rail); }
     state.view = name;
     $('viewBoard').hidden = name !== 'board';
     $('viewTrends').hidden = name !== 'trends';
+    $('viewPjp').hidden = name !== 'pjp';
     $('viewSettings').hidden = name !== 'settings';
     document.querySelectorAll('.rail-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.view === name));
     if (name === 'settings') { history.replaceState(null, '', '#settings'); loadSettings(); }
     else if (name === 'trends') { history.replaceState(null, '', '#trends'); loadTrends(false); }
+    else if (name === 'pjp') { history.replaceState(null, '', '#pjp'); pjpLoadMonth(false); }
     else { history.replaceState(null, '', location.pathname + location.search); if (state.data) render(); }
     window.scrollTo({ top: 0 });
   }
@@ -2369,7 +2462,439 @@ body { padding-left: var(--rail); }
     $('sfCancel').addEventListener('click', () => { $('schedFormCard').hidden = true; });
     $('schedTable').addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (b) scheduleAction(b.dataset.act, b.dataset.id); });
     $('boardUrlSave').addEventListener('click', saveBoardUrl);
-    window.addEventListener('hashchange', () => showView(location.hash === '#settings' ? 'settings' : location.hash === '#trends' ? 'trends' : 'board'));
+    window.addEventListener('hashchange', () => showView(location.hash === '#settings' ? 'settings' : location.hash === '#trends' ? 'trends' : location.hash === '#pjp' ? 'pjp' : 'board'));
+  }
+
+  // ---------- PJP: monthly route plan per employee ----------
+  // One plan per employee per month, saved in tva_pjp for everyone. Buying / non-buying / visicooler counts per route
+  // come from the daily report already on the board (outlets assigned to the employee on that route, latest status).
+  const PJP = { table: 'tva_pjp', routesTable: 'tva_pjp_routes', saveDelay: 900 };
+  const PJP_OFF = [
+    { key: 'WEEK OFF', re: /^(week(ly)?\s*-?\s*off|w\s*\/?\s*o|wo|off|rest|rest\s*day)$/i },
+    { key: 'LEAVE', re: /^(leave|on\s*leave|cl|sl|pl|el|casual\s*leave|sick\s*leave)$/i },
+    { key: 'HOLIDAY', re: /^(holiday|public\s*holiday|festival|festival\s*holiday|national\s*holiday)$/i },
+    { key: 'MEETING / TRAINING', re: /^(meeting|training|office|office\s*work|review|meeting\s*\/\s*training|training\s*\/\s*meeting)$/i },
+  ];
+  const PJP_NOISE = new Set(['ROUTE', 'ROUTES', 'RT', 'NO', 'NUMBER', 'SALE', 'SALES', 'THE', 'AND', 'TO', 'OF', 'AREA', 'BEAT']);
+  const pjp = {
+    month: '', employee: '', plans: new Map(), routeMap: new Map(), routeMapLoaded: false,
+    entries: new Map(), fileName: '', loadedMonth: '', loading: false, dirty: false, saveTimer: null, saveState: '', clearArmed: 0,
+  };
+  const pjpNorm = (s) => String(s == null ? '' : s).toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+  const pjpTokens = (s) => pjpNorm(s).split(' ').filter((t) => t && !PJP_NOISE.has(t));
+  const pjpCodeKey = (s) => pjpNorm(s).replace(/\s+/g, '_');
+  function pjpOffKind(text) {
+    const t = String(text || '').trim();
+    if (!t) return null;
+    const hit = PJP_OFF.find((o) => o.re.test(t));
+    return hit ? hit.key : null;
+  }
+  const pjpMonthLabel = (m) => { const p = String(m).split('-'); return p.length === 2 ? `${MON[+p[1] - 1]} ${p[0]}` : m; };
+  const pjpMonthLong = (m) => { const p = String(m).split('-'); return p.length === 2 ? new Date(Date.UTC(+p[0], +p[1] - 1, 1)).toLocaleString('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : m; };
+  function pjpMonthDays(month) {
+    const p = String(month).split('-'); if (p.length !== 2) return [];
+    const y = +p[0], m = +p[1], n = new Date(Date.UTC(y, m, 0)).getUTCDate(), out = [];
+    for (let d = 1; d <= n; d++) { const dt = new Date(Date.UTC(y, m - 1, d)); out.push({ date: `${String(d).padStart(2, '0')}-${String(m).padStart(2, '0')}-${y}`, day: WDL[dt.getUTCDay()], dow: dt.getUTCDay(), n: d }); }
+    return out;
+  }
+  const pjpToday = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`; };
+  const pjpThisMonth = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+  const pjpSplitPeople = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
+  const pjpRoleRank = (role) => ({ BDE: 0, BDM: 1, SH: 2 }[role] !== undefined ? { BDE: 0, BDM: 1, SH: 2 }[role] : 3);
+  const pjpRoleName = (role) => ({ BDE: 'BDE', BDM: 'BDM', SH: 'State head', LTE: 'LTE', NSM: 'NSM' }[role] || role || 'Other');
+
+  // Everyone who appears in the daily report (joint visits are split into the individual people).
+  function pjpEmployees() {
+    const map = new Map();
+    const rows = state.data ? state.data.rows : [];
+    rows.forEach((r) => pjpSplitPeople(r.employee).forEach((code) => {
+      if (!map.has(code)) { const who = P.prettyName(code); map.set(code, { code, display: who.display, role: who.roles[0] || 'Other', area: who.area, states: new Set(), managers: new Set(), outlets: 0 }); }
+      const e = map.get(code);
+      if (r.state) e.states.add(r.state);
+      if (r.managerDisplay) e.managers.add(r.managerDisplay);
+    }));
+    pjp.plans.forEach((row, code) => { if (!map.has(code)) { const who = P.prettyName(code); map.set(code, { code, display: who.display, role: who.roles[0] || 'Other', area: who.area, states: new Set(), managers: new Set(), outlets: 0, missing: true }); } });
+    const list = [...map.values()];
+    list.sort((a, b) => (a.missing ? 1 : 0) - (b.missing ? 1 : 0) || pjpRoleRank(a.role) - pjpRoleRank(b.role) || a.display.localeCompare(b.display));
+    return list;
+  }
+  // Routes of one employee from the daily report: outlets de-duplicated (latest status), counted per route.
+  function pjpRoutesFor(code) {
+    const latest = new Map();
+    (state.data ? state.data.rows : []).forEach((r) => {
+      if (!pjpSplitPeople(r.employee).includes(code)) return;
+      const key = `${r.route}|${r.outletId || `${String(r.outlet).toLowerCase()}|${r.routeCode}`}`;
+      const prev = latest.get(key);
+      if (!prev || P.dateKey(r.date) >= P.dateKey(prev.date)) latest.set(key, r);
+    });
+    const routes = new Map();
+    latest.forEach((r) => {
+      const name = r.route || '(no route)';
+      if (!routes.has(name)) routes.set(name, { name, code: r.routeCode || '', total: 0, buying: 0, nonBuying: 0, visi: 0, state: r.state });
+      const x = routes.get(name);
+      x.total++; if (r.buying === 'Buying') x.buying++; else x.nonBuying++; if (r.isVisicooler) x.visi++;
+    });
+    const list = [...routes.values()].sort((a, b) => a.name.localeCompare(b.name));
+    list.forEach((x, i) => { x.hue = (i * 47 + 160) % 360; });
+    return list;
+  }
+  // Match a PJP route name (as typed/imported) to one of the employee's routes: remembered → exact → by words and number.
+  function pjpMatchRoute(text, routes, remembered) {
+    const key = pjpNorm(text);
+    if (!key || !routes.length) return null;
+    const rem = remembered && remembered.get(key);
+    if (rem && routes.some((r) => r.name === rem)) return { route: rem, how: 'remembered' };
+    const exact = routes.find((r) => pjpNorm(r.name) === key || (r.code && pjpNorm(r.code) === key));
+    if (exact) return { route: exact.name, how: 'exact' };
+    const toks = pjpTokens(text);
+    const words = toks.filter((t) => !/^\d+$/.test(t)), nums = toks.filter((t) => /^\d+$/.test(t)).map(Number);
+    if (!words.length && !nums.length) return null;
+    const scored = routes.map((r) => {
+      const rt = pjpTokens(`${r.name} ${r.code}`);
+      const rwords = rt.filter((t) => !/^\d+$/.test(t)), rnums = rt.filter((t) => /^\d+$/.test(t)).map(Number);
+      let score = 0, hits = 0;
+      words.forEach((w) => {
+        if (rwords.includes(w)) { score += 2; hits++; }
+        else if (w.length >= 4 && rwords.some((x) => x.length >= 4 && (x.includes(w) || w.includes(x)))) { score += 1; hits++; }
+      });
+      if (nums.length && rnums.length) score += nums.some((n) => rnums.includes(n)) ? 1.5 : -1.5;
+      else if (nums.length && !rnums.length && !words.length) score = 0;
+      const possible = words.length * 2 + (nums.length ? 1.5 : 0);
+      return { route: r.name, score, norm: possible ? score / possible : 0, coverage: rwords.length ? hits / rwords.length : 0 };
+    }).filter((s) => s.score >= 2 && s.norm >= 0.5).sort((a, b) => b.score - a.score || b.coverage - a.coverage);
+    if (!scored.length) return null;
+    if (scored.length > 1 && scored[0].score === scored[1].score && scored[0].coverage === scored[1].coverage) return null; // ambiguous — let the user pick
+    return { route: scored[0].route, how: 'auto' };
+  }
+  // Resolve an entry against the current routes (remembered and automatic matches are re-checked every time).
+  function pjpResolve(entry, routes, code) {
+    const e = Object.assign({}, entry);
+    if (e.kind === 'off') { e.match = null; return e; }
+    const remembered = pjp.routeMap.get(code);
+    if (e.match && routes.some((r) => r.name === e.match)) return e;
+    const m = pjpMatchRoute(e.route, routes, remembered);
+    e.match = m ? m.route : null; e.how = m ? m.how : null;
+    return e;
+  }
+
+  async function pjpLoadMonth(force) {
+    if (!pjp.month) return;
+    if (!force && pjp.loadedMonth === pjp.month) { pjpSelectEmployee(pjp.employee); return; }
+    pjp.loading = true; pjpRender();
+    try {
+      const rows = await sb(`${PJP.table}?select=employee,month,entries,file_name,updated_at&month=eq.${encodeURIComponent(pjp.month)}`);
+      pjp.plans = new Map((rows || []).map((r) => [r.employee, r]));
+      if (!pjp.routeMapLoaded) {
+        const maps = await sb(`${PJP.routesTable}?select=employee,pjp_route,route`);
+        pjp.routeMap = new Map();
+        (maps || []).forEach((m) => { if (!pjp.routeMap.has(m.employee)) pjp.routeMap.set(m.employee, new Map()); pjp.routeMap.get(m.employee).set(m.pjp_route, m.route); });
+        pjp.routeMapLoaded = true;
+      }
+      pjp.loadedMonth = pjp.month;
+    } catch (e) {
+      console.error(e); toast('Could not load the PJP from the shared board: ' + (e.message || e), true);
+    }
+    pjp.loading = false;
+    pjpFillEmployees();
+    pjpSelectEmployee(pjp.employee);
+  }
+  function pjpFillEmployees() {
+    const sel = $('pjpEmployee'), list = pjpEmployees(), groups = new Map();
+    list.forEach((e) => { const g = e.missing ? 'Not in the current report' : pjpRoleName(e.role); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(e); });
+    sel.innerHTML = '';
+    if (!list.length) { sel.innerHTML = '<option value="">No employees yet — upload a daily report</option>'; return; }
+    groups.forEach((items, g) => {
+      const og = document.createElement('optgroup'); og.label = g;
+      items.forEach((e) => { const o = document.createElement('option'); o.value = e.code; o.textContent = `${e.display}${pjp.plans.has(e.code) ? ' ✓' : ''}`; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+    if (!list.some((e) => e.code === pjp.employee)) {
+      const pref = state.filters && state.filters.employee ? pjpSplitPeople(state.filters.employee)[0] : '';
+      pjp.employee = list.some((e) => e.code === pref) ? pref : list[0].code;
+    }
+    sel.value = pjp.employee;
+  }
+  function pjpSelectEmployee(code) {
+    pjp.employee = code || pjp.employee;
+    const saved = pjp.plans.get(pjp.employee);
+    const routes = pjpRoutesFor(pjp.employee);
+    pjp.entries = new Map();
+    pjp.fileName = saved ? saved.file_name || '' : '';
+    let changed = false;
+    ((saved && saved.entries) || []).forEach((e) => { if (e && e.date) { const r = pjpResolve(e, routes, pjp.employee); if ((r.match || null) !== (e.match || null)) changed = true; pjp.entries.set(e.date, r); } });
+    pjp.dirty = false; pjp.saveState = saved && saved.updated_at ? `Saved ${M.fmt.date(saved.updated_at)}` : '';
+    pjpRender();
+    if (changed && routes.length) pjpMarkDirty(); // a route name matched now that the report knows it — keep the saved copy in step
+  }
+
+  // ---- rendering ----
+  function pjpRender() {
+    const code = pjp.employee, who = code ? P.prettyName(code) : null, routes = code ? pjpRoutesFor(code) : [];
+    const days = pjpMonthDays(pjp.month), today = pjpToday();
+    const info = pjpEmployees().find((e) => e.code === code);
+    const byName = new Map(routes.map((r) => [r.name, r]));
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const title = who ? `${who.display} — ${pjpMonthLong(pjp.month)}` : 'Route plan';
+    $('pjpTitle').textContent = title;
+    const subBits = [];
+    if (info) { if (info.area) subBits.push(info.area); if (info.states.size) subBits.push([...info.states].join(', ')); if (info.managers.size) subBits.push('reports to ' + [...info.managers].join(', ')); }
+    subBits.push(`${routes.length} route${routes.length === 1 ? '' : 's'} · ${routes.reduce((a, r) => a + r.total, 0)} outlets in the daily report`);
+    if (pjp.fileName) subBits.push(`imported from ${pjp.fileName}`);
+    $('pjpSub').textContent = pjp.loading ? 'Loading the saved plan…' : subBits.join(' · ');
+    $('pjpMeta').textContent = state.data ? `Counts come from the report on the board (${state.data.meta.fileName || 'current upload'}).` : 'Upload a daily report first — the counts come from it.';
+    pjpRenderSaveState();
+
+    // totals
+    const tot = { planned: 0, off: 0, blank: 0, unmatched: 0, visits: 0, buying: 0, nonBuying: 0, visi: 0, routes: new Map() };
+    days.forEach((d) => {
+      const e = pjp.entries.get(d.date);
+      if (!e) { tot.blank++; return; }
+      if (e.kind === 'off') { tot.off++; return; }
+      tot.planned++;
+      const r = e.match ? byName.get(e.match) : null;
+      if (!r) { tot.unmatched++; return; }
+      tot.visits += r.total; tot.buying += r.buying; tot.nonBuying += r.nonBuying; tot.visi += r.visi;
+      tot.routes.set(r.name, (tot.routes.get(r.name) || 0) + 1);
+    });
+    const never = routes.filter((r) => !tot.routes.has(r.name));
+    const kpi = (label, value, sub, cls) => `<div class="kpi ${cls || ''}"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-sub">${sub}</div></div>`;
+    $('pjpKpis').innerHTML =
+      kpi('Days planned', `${tot.planned}<small>of ${days.length}</small>`, `${tot.off} off · ${tot.blank} not planned yet`) +
+      kpi('Routes in the plan', `${tot.routes.size}<small>of ${routes.length}</small>`, tot.unmatched ? `<span class="is-warn">${tot.unmatched} day${tot.unmatched === 1 ? '' : 's'} with a route name to match</span>` : (never.length ? `${never.length} route${never.length === 1 ? '' : 's'} never planned` : 'every route is covered'), tot.unmatched ? 'kpi-warn' : '') +
+      kpi('Outlet visits planned', M.fmt.int(tot.visits), `buying ${M.fmt.int(tot.buying)} · non-buying ${M.fmt.int(tot.nonBuying)} · visicooler ${M.fmt.int(tot.visi)}`) +
+      kpi('Buying outlets covered', routes.length ? M.fmt.int(routes.filter((r) => tot.routes.has(r.name)).reduce((a, r) => a + r.buying, 0)) + `<small>of ${M.fmt.int(routes.reduce((a, r) => a + r.buying, 0))}</small>` : '—', never.length ? `not planned: ${esc(never.slice(0, 3).map((r) => r.name).join(', '))}${never.length > 3 ? ` +${never.length - 3}` : ''}` : 'all buying outlets have a planned visit', never.length ? 'kpi-warn' : 'kpi-good');
+
+    // the plan table
+    const opts = (e) => {
+      let h = '<option value="">— not planned —</option><optgroup label="Off">' + PJP_OFF.map((o) => `<option value="off:${esc(o.key)}"${e && e.kind === 'off' && e.route === o.key ? ' selected' : ''}>${esc(o.key)}</option>`).join('') + '</optgroup>';
+      if (e && e.kind === 'off' && !PJP_OFF.some((o) => o.key === e.route)) h += `<optgroup label="Off"><option value="off:${esc(e.route)}" selected>${esc(e.route)}</option></optgroup>`;
+      h += '<optgroup label="Routes (daily report)">' + routes.map((r) => `<option value="route:${esc(r.name)}"${e && e.kind !== 'off' && e.match === r.name ? ' selected' : ''}>${esc(r.name)} · ${r.total} outlets</option>`).join('') + '</optgroup>';
+      if (e && e.kind !== 'off' && !e.match) h += `<optgroup label="Imported — pick the matching route above"><option value="keep" selected>${esc(e.route)} (not matched)</option></optgroup>`;
+      return h;
+    };
+    const num = (v, cls) => `<td class="num">${v === null ? '<span class="muted">—</span>' : `<span class="pill ${cls}">${M.fmt.int(v)}</span>`}</td>`;
+    let html = '<thead><tr><th>Date</th><th>Day</th><th>Route name with no</th><th class="num">Buying</th><th class="num">Non-buying</th><th class="num">Visicooler</th><th class="num">Total outlets</th></tr></thead><tbody>';
+    days.forEach((d) => {
+      const e = pjp.entries.get(d.date), r = e && e.kind !== 'off' && e.match ? byName.get(e.match) : null;
+      const cls = [d.dow === 0 ? 'is-sun' : '', d.date === today ? 'is-today' : '', e ? (e.kind === 'off' ? 'is-off' : (!e.match ? 'is-unmatched' : '')) : 'is-blank'].filter(Boolean).join(' ');
+      const style = r ? ` style="--rc: hsl(${r.hue} 55% 48%)"` : '';
+      const note = e && e.kind !== 'off' && e.match && pjpNorm(e.route) !== pjpNorm(e.match) ? `<small class="pjp-note">in the file: ${esc(e.route)}</small>` : '';
+      html += `<tr class="${cls}" data-date="${d.date}"><td class="pjp-date"><b>${d.date.slice(0, 2)}</b><small>${d.date.slice(3)}</small></td><td class="pjp-day">${d.day}</td>` +
+        `<td class="route"><select class="pjp-route" data-date="${d.date}" aria-label="Route for ${d.date}"${style}>${opts(e)}</select>${note}</td>` +
+        (r ? num(r.buying, 'is-good') + num(r.nonBuying, 'is-muted') + num(r.visi, 'is-info') + num(r.total, 'is-total')
+          : e && e.kind !== 'off' ? `<td class="num" colspan="4"><span class="tag tag-warn">Not in the report — choose the route from the list</span></td>`
+          : '<td class="num muted" colspan="4">—</td>') + '</tr>';
+    });
+    html += `</tbody><tfoot><tr><td colspan="3">${tot.planned} route day${tot.planned === 1 ? '' : 's'} · ${tot.off} off · ${tot.blank} not planned</td>${num(tot.buying, 'is-good')}${num(tot.nonBuying, 'is-muted')}${num(tot.visi, 'is-info')}${num(tot.visits, 'is-total')}</tr></tfoot>`;
+    $('pjpTable').innerHTML = html;
+
+    // routes of the employee
+    let rt = '<thead><tr><th>Route</th><th>Code</th><th class="num">Buying</th><th class="num">Non-buying</th><th class="num">Visicooler</th><th class="num">Total</th><th class="num">Planned this month</th></tr></thead><tbody>';
+    routes.slice().sort((a, b) => (tot.routes.get(b.name) || 0) - (tot.routes.get(a.name) || 0) || a.name.localeCompare(b.name)).forEach((r) => {
+      const n = tot.routes.get(r.name) || 0;
+      rt += `<tr${n ? '' : ' class="is-never"'}><td class="name"><span class="dot" style="background: hsl(${r.hue} 55% 48%)"></span>${esc(r.name)}</td><td class="muted">${esc(r.code || '—')}</td>${num(r.buying, 'is-good')}${num(r.nonBuying, 'is-muted')}${num(r.visi, 'is-info')}${num(r.total, 'is-total')}<td class="num">${n ? `<b>${n}×</b>` : '<span class="tag tag-warn">never</span>'}</td></tr>`;
+    });
+    if (!routes.length) rt += `<tr><td class="empty" colspan="7">${state.data ? 'This employee has no outlets in the report on the board.' : 'Upload a daily report to see routes and outlet counts.'}</td></tr>`;
+    $('pjpRoutesTable').innerHTML = rt + '</tbody>';
+    $('pjpRoutesSub').textContent = routes.length ? `${routes.length} routes from the daily report · how many times each is planned in ${pjpMonthLabel(pjp.month)}` : '';
+    $('pjpExport').disabled = !code;
+  }
+  function pjpRenderSaveState() {
+    const el = $('pjpSaveState');
+    el.textContent = pjp.saveState; el.classList.toggle('is-bad', /^Could not/.test(pjp.saveState)); el.classList.toggle('is-saving', /^Saving/.test(pjp.saveState));
+  }
+
+  // ---- editing ----
+  function pjpOnRouteChange(date, value) {
+    const routes = pjpRoutesFor(pjp.employee), cur = pjp.entries.get(date);
+    if (value === 'keep') return;
+    if (!value) pjp.entries.delete(date);
+    else if (value.startsWith('off:')) pjp.entries.set(date, { date, route: value.slice(4), match: null, kind: 'off' });
+    else {
+      const name = value.slice(6);
+      if (cur && cur.kind !== 'off' && !cur.match && cur.route && pjpNorm(cur.route) !== pjpNorm(name)) {
+        // an imported name is being matched by hand: keep the name, remember the match, apply it to the other days with the same name
+        const key = pjpNorm(cur.route);
+        pjp.entries.forEach((e, d) => { if (e.kind !== 'off' && !e.match && pjpNorm(e.route) === key) pjp.entries.set(d, Object.assign({}, e, { match: name, how: 'manual' })); });
+        pjpRemember(pjp.employee, key, name);
+      } else pjp.entries.set(date, { date, route: name, match: name, kind: 'route', how: 'manual' });
+    }
+    pjpMarkDirty(); pjpRender();
+  }
+  async function pjpRemember(code, key, route) {
+    if (!pjp.routeMap.has(code)) pjp.routeMap.set(code, new Map());
+    pjp.routeMap.get(code).set(key, route);
+    try { await sb(`${PJP.routesTable}?on_conflict=employee,pjp_route`, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { employee: code, pjp_route: key, route } }); }
+    catch (e) { console.error('Could not remember the route match:', e); }
+  }
+  function pjpMarkDirty() {
+    pjp.dirty = true; pjp.saveState = 'Saving…'; pjpRenderSaveState();
+    clearTimeout(pjp.saveTimer); pjp.saveTimer = setTimeout(pjpSave, PJP.saveDelay);
+  }
+  function pjpEntriesArray() {
+    return [...pjp.entries.values()].filter((e) => e && e.date).sort((a, b) => P.dateKey(a.date) - P.dateKey(b.date))
+      .map((e) => ({ date: e.date, route: e.route, match: e.kind === 'off' ? null : e.match || null, kind: e.kind === 'off' ? 'off' : 'route', how: e.how || null }));
+  }
+  async function pjpSave() {
+    clearTimeout(pjp.saveTimer);
+    if (!pjp.dirty || !pjp.employee || !pjp.month) return;
+    const code = pjp.employee, month = pjp.month, body = { employee: code, month, entries: pjpEntriesArray(), file_name: pjp.fileName || null };
+    pjp.dirty = false;
+    try {
+      const rows = await sb(`${PJP.table}?on_conflict=employee,month`, { method: 'POST', keepalive: true, headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body });
+      const row = rows && rows[0] ? rows[0] : Object.assign({ updated_at: new Date().toISOString() }, body);
+      if (month === pjp.loadedMonth) pjp.plans.set(code, row);
+      if (!pjp.dirty) { pjp.saveState = `Saved ${M.fmt.date(row.updated_at || new Date().toISOString())}`; pjpRenderSaveState(); }
+      const opt = [...$('pjpEmployee').options].find((o) => o.value === code);
+      if (opt && !/ ✓$/.test(opt.textContent)) opt.textContent += ' ✓';
+    } catch (e) {
+      console.error(e); pjp.dirty = true; pjp.saveState = 'Could not save — ' + (e.message || e); pjpRenderSaveState();
+      toast('Could not save the PJP to the shared board: ' + (e.message || e), true);
+    }
+  }
+  function pjpRepeatWeek() {
+    const days = pjpMonthDays(pjp.month);
+    const first = days.slice(0, 7).map((d) => pjp.entries.get(d.date)).filter(Boolean);
+    if (!first.length) { toast('Fill in the first 7 days first — their pattern is copied to the rest of the month.', false, true); return; }
+    const byDow = new Map(); days.slice(0, 7).forEach((d) => { const e = pjp.entries.get(d.date); if (e) byDow.set(d.dow, e); });
+    let n = 0;
+    days.slice(7).forEach((d) => { const e = byDow.get(d.dow); if (e) { pjp.entries.set(d.date, Object.assign({}, e, { date: d.date })); n++; } });
+    pjpMarkDirty(); pjpRender();
+    toast(`First week's pattern copied to ${n} more day${n === 1 ? '' : 's'}.`);
+  }
+  function pjpClear() {
+    const b = $('pjpClear');
+    if (Date.now() - pjp.clearArmed > 4000) { pjp.clearArmed = Date.now(); b.textContent = 'Press again to clear'; b.classList.add('is-danger'); setTimeout(() => { b.textContent = 'Clear month'; b.classList.remove('is-danger'); }, 4000); return; }
+    pjp.clearArmed = 0; b.textContent = 'Clear month'; b.classList.remove('is-danger');
+    pjp.entries = new Map(); pjp.fileName = ''; pjpMarkDirty(); pjpRender();
+    toast(`${pjpMonthLabel(pjp.month)} cleared for ${P.prettyName(pjp.employee).display}.`);
+  }
+
+  // ---- import / export ----
+  // Reads every DATE / DAY / ROUTE block in the workbook (one per sheet, or several per sheet). The name above a block
+  // picks the employee; a block without a recognisable name goes to the employee selected on the page.
+  function pjpParseWorkbook(wb) {
+    const blocks = [];
+    const isDate = (v) => /^date/i.test(pjpNorm(v).toLowerCase()) || /^date$/i.test(String(v || '').trim());
+    wb.SheetNames.forEach((sheet) => {
+      const aoa = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { header: 1, raw: true, defval: null });
+      for (let i = 0; i < aoa.length; i++) {
+        const row = aoa[i] || [];
+        for (let c = 0; c < row.length; c++) {
+          if (!isDate(row[c])) continue;
+          // DAY and ROUTE must be in the next few columns of the same row
+          let dayCol = -1, routeCol = -1;
+          for (let k = c + 1; k <= c + 4 && k < row.length; k++) { const t = pjpNorm(row[k]); if (dayCol < 0 && /^DAY/.test(t)) dayCol = k; else if (routeCol < 0 && /ROUTE|BEAT|AREA|PLAN|MARKET/.test(t)) routeCol = k; }
+          if (routeCol < 0 && dayCol >= 0) routeCol = dayCol + 1; // three plain columns
+          if (routeCol < 0) continue;
+          // the title: nearest non-empty cell above the header in the same columns
+          let title = '';
+          for (let up = i - 1; up >= Math.max(0, i - 4) && !title; up--) { const r2 = aoa[up] || []; for (let k = c; k <= routeCol; k++) { if (r2[k] !== null && r2[k] !== undefined && String(r2[k]).trim()) { title = String(r2[k]).trim(); break; } } }
+          const rows = [];
+          for (let j = i + 1; j < aoa.length; j++) {
+            const r2 = aoa[j] || [];
+            const date = P.toDateStr(r2[c]);
+            if (!/^\d{2}-\d{2}-\d{4}$/.test(date)) { if (rows.length) break; else continue; }
+            rows.push({ date, day: dayCol >= 0 ? String(r2[dayCol] || '').trim() : '', route: String(r2[routeCol] == null ? '' : r2[routeCol]).trim() });
+          }
+          if (rows.length) blocks.push({ sheet, title, rows });
+          c = routeCol; // continue scanning the same row for another block to the right
+        }
+      }
+    });
+    return blocks;
+  }
+  function pjpFindEmployee(title, list) {
+    const key = pjpCodeKey(title);
+    if (!key) return null;
+    const exact = list.find((e) => pjpCodeKey(e.code) === key || pjpCodeKey(e.display) === key);
+    if (exact) return exact;
+    const toks = new Set(pjpNorm(title).split(' ').filter(Boolean));
+    const cands = list.filter((e) => { const ct = new Set(pjpNorm(e.code).split(' ')); return [...toks].every((t) => ct.has(t)); });
+    if (cands.length === 1) return cands[0];
+    if (cands.length > 1) { const tight = cands.filter((e) => pjpNorm(e.code).split(' ').length === toks.size); return tight.length === 1 ? tight[0] : null; }
+    const byName = list.filter((e) => { const nameToks = new Set(pjpNorm(e.display.replace(/\(.*?\)/g, '')).split(' ').filter(Boolean)); return [...nameToks].length && [...nameToks].every((t) => toks.has(t)); });
+    return byName.length === 1 ? byName[0] : null;
+  }
+  async function pjpImport(file) {
+    if (!file) return;
+    if (typeof XLSX === 'undefined') { toast('The Excel reader did not load. Check your connection and reload the page.', true); return; }
+    if (!state.data) { toast('The daily report is still loading — try the import again in a moment.', false, true); return; }
+    toast(`Reading ${file.name}…`);
+    try {
+      const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false }); // serial dates → exact day, no time-zone shift
+      const blocks = pjpParseWorkbook(wb);
+      if (!blocks.length) throw new Error('No DATE / DAY / ROUTE NAME columns were found in the file.');
+      const list = pjpEmployees();
+      const results = [], unknown = [];
+      let firstKey = null;
+      for (const b of blocks) {
+        let emp = pjpFindEmployee(b.title, list);
+        if (!emp && blocks.length === 1 && pjp.employee) emp = list.find((e) => e.code === pjp.employee) || { code: pjp.employee, display: P.prettyName(pjp.employee).display };
+        if (!emp) { unknown.push(b.title || `${b.sheet} (no name above the table)`); continue; }
+        // the month with most dated rows in the block
+        const months = new Map(); b.rows.forEach((r) => { const m = `${r.date.slice(6)}-${r.date.slice(3, 5)}`; months.set(m, (months.get(m) || 0) + 1); });
+        const month = [...months.entries()].sort((x, y) => y[1] - x[1])[0][0];
+        const routes = pjpRoutesFor(emp.code), remembered = pjp.routeMap.get(emp.code);
+        const entries = [];
+        let unmatched = 0, offs = 0;
+        b.rows.filter((r) => r.date.endsWith(`-${month.slice(5)}-${month.slice(0, 4)}`)).forEach((r) => {
+          if (!r.route) return;
+          const off = pjpOffKind(r.route);
+          if (off) { offs++; entries.push({ date: r.date, route: off, match: null, kind: 'off' }); return; }
+          const m = pjpMatchRoute(r.route, routes, remembered);
+          if (!m) unmatched++;
+          entries.push({ date: r.date, route: r.route, match: m ? m.route : null, kind: 'route', how: m ? m.how : null });
+        });
+        // save straight away (one row per employee + month)
+        const body = { employee: emp.code, month, entries: entries.sort((x, y) => P.dateKey(x.date) - P.dateKey(y.date)), file_name: file.name };
+        const rows = await sb(`${PJP.table}?on_conflict=employee,month`, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body });
+        const row = rows && rows[0] ? rows[0] : Object.assign({ updated_at: new Date().toISOString() }, body);
+        if (month === pjp.loadedMonth) pjp.plans.set(emp.code, row);
+        if (!firstKey) firstKey = { code: emp.code, month };
+        results.push(`${emp.display} ${pjpMonthLabel(month)}: ${entries.length - offs} route days, ${offs} off${unmatched ? `, ${unmatched} route name${unmatched === 1 ? '' : 's'} to match` : ''}`);
+      }
+      if (firstKey) {
+        pjp.employee = firstKey.code;
+        if (firstKey.month !== pjp.month) { pjp.month = firstKey.month; $('pjpMonth').value = pjp.month; pjp.loadedMonth = ''; }
+        await pjpLoadMonth(true);
+      }
+      const msg = (results.length ? `Imported ${results.join(' · ')}.` : '') + (unknown.length ? ` Not imported (name not found in the report): ${unknown.join(', ')}.` : '');
+      toast(msg || 'Nothing was imported.', !results.length, results.length && unknown.length);
+    } catch (e) {
+      console.error(e); toast('Could not import that file: ' + (e.message || e), true);
+    }
+  }
+  function pjpExport() {
+    if (!pjp.employee) return;
+    const who = P.prettyName(pjp.employee), routes = pjpRoutesFor(pjp.employee), byName = new Map(routes.map((r) => [r.name, r]));
+    const aoa = [[pjp.employee], ['DATE', 'DAY', 'ROUTE NAME WITH NO', 'BUYING OUTLETS', 'NON-BUYING OUTLETS', 'VISICOOLER OUTLETS', 'TOTAL OUTLETS', 'ROUTE IN DAILY REPORT']];
+    const tot = [0, 0, 0, 0];
+    pjpMonthDays(pjp.month).forEach((d) => {
+      const e = pjp.entries.get(d.date), r = e && e.kind !== 'off' && e.match ? byName.get(e.match) : null;
+      if (r) { tot[0] += r.buying; tot[1] += r.nonBuying; tot[2] += r.visi; tot[3] += r.total; }
+      aoa.push([d.date, d.day.toUpperCase(), e ? e.route : '', r ? r.buying : '', r ? r.nonBuying : '', r ? r.visi : '', r ? r.total : '', r ? r.name : (e && e.kind !== 'off' ? 'not matched' : '')]);
+    });
+    aoa.push(['TOTAL', '', '', tot[0], tot[1], tot[2], tot[3], '']);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }];
+    ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 34 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 40 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'PJP');
+    XLSX.writeFile(wb, `PJP - ${who.display.replace(/[\\/:*?"<>|]/g, '')} - ${pjpMonthLabel(pjp.month)}.xlsx`);
+  }
+
+  function bindPjp() {
+    pjp.month = pjpThisMonth();
+    $('pjpMonth').value = pjp.month;
+    $('pjpMonth').addEventListener('change', async (e) => { if (!e.target.value) return; await pjpSave(); pjp.month = e.target.value; pjpLoadMonth(false); });
+    $('pjpEmployee').addEventListener('change', async (e) => { await pjpSave(); pjpSelectEmployee(e.target.value); });
+    $('pjpImportInput').addEventListener('change', (e) => { pjpImport(e.target.files[0]); e.target.value = ''; });
+    $('pjpExport').addEventListener('click', pjpExport);
+    $('pjpRepeatWeek').addEventListener('click', pjpRepeatWeek);
+    $('pjpClear').addEventListener('click', pjpClear);
+    $('pjpTable').addEventListener('change', (e) => { const s = e.target.closest('select.pjp-route'); if (s) pjpOnRouteChange(s.dataset.date, s.value); });
+    window.addEventListener('beforeunload', () => { if (pjp.dirty) pjpSave(); });
   }
 
   // ---------- data ----------
@@ -2383,6 +2908,7 @@ body { padding-left: var(--rail); }
     renderDatasetLine();
     renderRoleChips();
     render();
+    if (state.view === 'pjp') { pjpFillEmployees(); pjpSelectEmployee(pjp.employee); } // the PJP page reads its routes and counts from this data
   }
 
   function renderDatasetLine() {
@@ -2634,8 +3160,10 @@ body { padding-left: var(--rail); }
   bind();
   bindSettings();
   bindTrends();
+  bindPjp();
   if (location.hash === '#settings') showView('settings');
   else if (location.hash === '#trends') showView('trends');
+  else if (location.hash === '#pjp') showView('pjp');
   boot();
 })();
 
